@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0" default-activation="lazy">
+
+  <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.1.0">
+    <command>
+      <action class="org.renci.hearsay.commands.ncbi.PullGenesAction">
+        <property name="hearsayDAOBean" ref="hearsayDAOBean" />
+      </action>
+    </command>
+    <command>
+      <action class="org.renci.hearsay.commands.ncbi.PullGenomeReferencesAction">
+        <property name="hearsayDAOBean" ref="hearsayDAOBean" />
+      </action>
+    </command>
+    <command>
+      <action class="org.renci.hearsay.commands.ncbi.PullReferenceSequencesAction">
+        <property name="hearsayDAOBean" ref="hearsayDAOBean" />
+      </action>
+    </command>
+  </command-bundle>
+
+  <reference id="alignmentDAO" interface="org.renci.hearsay.dao.AlignmentDAO" />
+  <reference id="canonicalAlleleDAO" interface="org.renci.hearsay.dao.CanonicalAlleleDAO" />
+  <reference id="featureDAO" interface="org.renci.hearsay.dao.FeatureDAO" />
+  <reference id="geneDAO" interface="org.renci.hearsay.dao.GeneDAO" />
+  <reference id="geneSymbolDAO" interface="org.renci.hearsay.dao.GeneSymbolDAO" />
+  <reference id="genomeReferenceDAO" interface="org.renci.hearsay.dao.GenomeReferenceDAO" />
+  <reference id="identifierDAO" interface="org.renci.hearsay.dao.IdentifierDAO" />
+  <reference id="intronOffsetDAO" interface="org.renci.hearsay.dao.IntronOffsetDAO" />
+  <reference id="locationDAO" interface="org.renci.hearsay.dao.LocationDAO" />
+  <reference id="molecularConsequenceDAO" interface="org.renci.hearsay.dao.MolecularConsequenceDAO" />
+  <reference id="populationFrequencyDAO" interface="org.renci.hearsay.dao.PopulationFrequencyDAO" />
+  <reference id="referenceCoordinateDAO" interface="org.renci.hearsay.dao.ReferenceCoordinateDAO" />
+  <reference id="referenceSequenceDAO" interface="org.renci.hearsay.dao.ReferenceSequenceDAO" />
+  <reference id="regionDAO" interface="org.renci.hearsay.dao.RegionDAO" />
+  <reference id="simpleAlleleDAO" interface="org.renci.hearsay.dao.SimpleAlleleDAO" />
+
+  <bean id="hearsayDAOBean" class="org.renci.hearsay.dao.HearsayDAOBean">
+    <property name="alignmentDAO" ref="alignmentDAO" />
+    <property name="canonicalAlleleDAO" ref="canonicalAlleleDAO" />
+    <property name="featureDAO" ref="featureDAO" />
+    <property name="geneDAO" ref="geneDAO" />
+    <property name="geneSymbolDAO" ref="geneSymbolDAO" />
+    <property name="genomeReferenceDAO" ref="genomeReferenceDAO" />
+    <property name="identifierDAO" ref="identifierDAO" />
+    <property name="intronOffsetDAO" ref="intronOffsetDAO" />
+    <property name="locationDAO" ref="locationDAO" />
+    <property name="molecularConsequenceDAO" ref="molecularConsequenceDAO" />
+    <property name="populationFrequencyDAO" ref="populationFrequencyDAO" />
+    <property name="referenceCoordinateDAO" ref="referenceCoordinateDAO" />
+    <property name="referenceSequenceDAO" ref="referenceSequenceDAO" />
+    <property name="regionDAO" ref="regionDAO" />
+    <property name="simpleAlleleDAO" ref="simpleAlleleDAO" />
+  </bean>
+
+</blueprint>
