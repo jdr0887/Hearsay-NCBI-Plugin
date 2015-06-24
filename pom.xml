@@ -11,7 +11,7 @@
   <version>0.0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <properties>
-    <hearsay.version>0.0.41-SNAPSHOT</hearsay.version>
+    <hearsay.version>0.0.41</hearsay.version>
     <gbff.parser.version>0.0.22</gbff.parser.version>
     <gff3.parser.version>0.0.3</gff3.parser.version>
   </properties>
