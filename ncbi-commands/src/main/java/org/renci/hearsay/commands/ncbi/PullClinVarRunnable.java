@@ -25,13 +25,14 @@ import org.renci.clinvar.ReferenceAssertionType;
 import org.renci.clinvar.ReleaseType;
 import org.renci.clinvar.SetElementSetType;
 import org.renci.clinvar.XrefType;
-import org.renci.hearsay.commands.ncbi.util.NCBIFTPUtil;
+import org.renci.hearsay.commands.ncbi.util.FTPUtil;
 import org.renci.hearsay.dao.HearsayDAOBean;
 import org.renci.hearsay.dao.HearsayDAOException;
 import org.renci.hearsay.dao.model.CanonicalAllele;
 import org.renci.hearsay.dao.model.ComplexityType;
 import org.renci.hearsay.dao.model.Identifier;
 import org.renci.hearsay.dao.model.IntronOffset;
+import org.renci.hearsay.dao.model.Location;
 import org.renci.hearsay.dao.model.MolecularConsequence;
 import org.renci.hearsay.dao.model.MolecularConsequenceType;
 import org.renci.hearsay.dao.model.MoleculeType;
@@ -58,7 +59,7 @@ public class PullClinVarRunnable implements Runnable {
     @Override
     public void run() {
 
-        File clinvarDownload = NCBIFTPUtil.download("/pub/clinvar/xml", "ClinVarFullRelease_00-latest.xml.gz");
+        File clinvarDownload = FTPUtil.ncbiDownload("/pub/clinvar/xml", "ClinVarFullRelease_00-latest.xml.gz");
 
         try {
             JAXBContext jc = JAXBContext.newInstance(ReleaseType.class);
@@ -88,22 +89,13 @@ public class PullClinVarRunnable implements Runnable {
                 }
                 canonicalAllele.setComplexityType(complexityType);
 
-                try {
-                    canonicalAllele.setId(hearsayDAOBean.getCanonicalAlleleDAO().save(canonicalAllele));
-                } catch (HearsayDAOException e1) {
-                    e1.printStackTrace();
-                }
+                canonicalAllele.setId(hearsayDAOBean.getCanonicalAlleleDAO().save(canonicalAllele));
 
                 if ("Variant".equals(mst.getType())) {
-
                     Identifier identifier = new Identifier();
                     identifier.setSystem("http://www.ncbi.nlm.nih.gov/clinvar");
                     identifier.setValue(mst.getID().toString());
-                    try {
-                        identifier.setId(hearsayDAOBean.getIdentifierDAO().save(identifier));
-                    } catch (HearsayDAOException e) {
-                        logger.error("HearsayDAOException", e);
-                    }
+                    identifier.setId(hearsayDAOBean.getIdentifierDAO().save(identifier));
                     logger.info(identifier.toString());
                     canonicalAllele.getRelatedIdentifiers().add(identifier);
                 }
@@ -164,12 +156,8 @@ public class PullClinVarRunnable implements Runnable {
                                         MolecularConsequence mc = new MolecularConsequence(
                                                 Integer.valueOf(sequenceOntologyId.replace("SO:", "")),
                                                 MolecularConsequenceType.PRIMARY);
-                                        try {
-                                            mc.setId(hearsayDAOBean.getMolecularConsequenceDAO().save(mc));
-                                            sa.getMolecularConsequences().add(mc);
-                                        } catch (HearsayDAOException e) {
-                                            logger.error("HearsayDAOException", e);
-                                        }
+                                        mc.setId(hearsayDAOBean.getMolecularConsequenceDAO().save(mc));
+                                        sa.getMolecularConsequences().add(mc);
                                     }
                                 }
                             }
@@ -179,14 +167,10 @@ public class PullClinVarRunnable implements Runnable {
                     for (SimpleAllele sa : simpleAlleleSet) {
                         String referenceSequenceAccession = sa.getName().substring(0, sa.getName().indexOf("."));
                         ReferenceSequence referenceSequence = null;
-                        try {
-                            List<ReferenceSequence> potentialRefSeqList = hearsayDAOBean.getReferenceSequenceDAO()
-                                    .findByIdentifierValue(referenceSequenceAccession);
-                            if (potentialRefSeqList != null && !potentialRefSeqList.isEmpty()) {
-                                referenceSequence = potentialRefSeqList.get(0);
-                            }
-                        } catch (HearsayDAOException e) {
-                            e.printStackTrace();
+                        List<ReferenceSequence> potentialRefSeqList = hearsayDAOBean.getReferenceSequenceDAO()
+                                .findByIdentifierValue(referenceSequenceAccession);
+                        if (potentialRefSeqList != null && !potentialRefSeqList.isEmpty()) {
+                            referenceSequence = potentialRefSeqList.get(0);
                         }
 
                         ReferenceCoordinate referenceCoordinate = new ReferenceCoordinate();
@@ -205,8 +189,10 @@ public class PullClinVarRunnable implements Runnable {
                                 referenceCoordinate.setRefAllele(s.substring(0, s.indexOf(">")));
                                 if (NumberUtils.isNumber(location)) {
                                     // a change in the coding
-                                    referenceCoordinate.setStart(Integer.valueOf(location) - 1);
-                                    referenceCoordinate.setEnd(Integer.valueOf(location));
+                                    Location rcLocation = new Location(Integer.valueOf(location) - 1,
+                                            Integer.valueOf(location));
+                                    rcLocation.setId(hearsayDAOBean.getLocationDAO().save(rcLocation));
+                                    referenceCoordinate.setLocation(rcLocation);
                                 } else {
                                     if (location.contains("-") && !location.startsWith("-")) {
                                         // a change in the 3' end of an intron
@@ -240,27 +226,19 @@ public class PullClinVarRunnable implements Runnable {
 
                         if (StringUtils.isNotEmpty(dbSNPId)) {
                             Identifier identifier = new Identifier("www.ncbi.nlm.nih.gov/snp", dbSNPId);
-                            try {
-                                List<Identifier> possibleIdentifiers = hearsayDAOBean.getIdentifierDAO().findByExample(
-                                        identifier);
-                                if (possibleIdentifiers != null && !possibleIdentifiers.isEmpty()) {
-                                    identifier = possibleIdentifiers.get(0);
-                                } else {
-                                    identifier.setId(hearsayDAOBean.getIdentifierDAO().save(identifier));
-                                }
-                            } catch (HearsayDAOException e) {
-                                logger.error("HearsayDAOException", e);
+                            List<Identifier> possibleIdentifiers = hearsayDAOBean.getIdentifierDAO().findByExample(
+                                    identifier);
+                            if (possibleIdentifiers != null && !possibleIdentifiers.isEmpty()) {
+                                identifier = possibleIdentifiers.get(0);
+                            } else {
+                                identifier.setId(hearsayDAOBean.getIdentifierDAO().save(identifier));
                             }
                             logger.info(identifier.toString());
                             referenceCoordinate.getIdentifiers().add(identifier);
                         }
 
                         sa.setReferenceCoordinate(referenceCoordinate);
-                        try {
-                            hearsayDAOBean.getSimpleAlleleDAO().save(sa);
-                        } catch (HearsayDAOException e) {
-                            logger.error("HearsayDAOException", e);
-                        }
+                        hearsayDAOBean.getSimpleAlleleDAO().save(sa);
                     }
 
                     canonicalAllele.getRelatedSimpleAlleles().addAll(simpleAlleleSet);
@@ -269,7 +247,7 @@ public class PullClinVarRunnable implements Runnable {
 
             }
 
-        } catch (JAXBException | IOException e) {
+        } catch (HearsayDAOException | JAXBException | IOException e) {
             logger.error("JAXBException | IOException", e);
         }
 
