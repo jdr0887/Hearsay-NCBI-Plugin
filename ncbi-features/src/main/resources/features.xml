@@ -4,7 +4,8 @@
     <bundle>mvn:org.renci.clinvar/clinvar-public/1.18</bundle>
     <bundle>mvn:org.renci.lrg/lrg-public/1.9</bundle>    
     <bundle>mvn:org.renci.gff/gff3-parser/${gff3.parser.version}</bundle>
-    <bundle>mvn:org.renci.genbank/gbff-parser/${gbff.parser.version}</bundle>    
+    <bundle>mvn:org.renci.genbank/gbff-parser/${gbff.parser.version}</bundle>
+    <bundle>mvn:org.renci.gene2accession/gene2accession-parser/${gene2accession.parser.version}</bundle>    
     <bundle>mvn:org.renci.hearsay.plugin.ncbi/ncbi-commands/${project.version}</bundle>
   </feature>
 
