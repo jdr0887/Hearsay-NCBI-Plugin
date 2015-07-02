@@ -11,9 +11,10 @@
   <version>0.0.2-SNAPSHOT</version>
   <packaging>pom</packaging>
   <properties>
-    <hearsay.version>0.0.41</hearsay.version>
-    <gbff.parser.version>0.0.22</gbff.parser.version>
+    <hearsay.version>0.0.42-SNAPSHOT</hearsay.version>
+    <gbff.parser.version>0.0.25</gbff.parser.version>
     <gff3.parser.version>0.0.3</gff3.parser.version>
+    <gene2accession.parser.version>0.0.3</gene2accession.parser.version>
   </properties>
   <issueManagement>
     <system>GitHub Issues</system>
@@ -34,6 +35,11 @@
   </scm>
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>org.renci.gene2accession</groupId>
+	<artifactId>gene2accession-parser</artifactId>
+	<version>${gene2accession.parser.version}</version>
+      </dependency>  
       <dependency>
 	<groupId>org.renci.genbank</groupId>
 	<artifactId>gbff-parser</artifactId>
