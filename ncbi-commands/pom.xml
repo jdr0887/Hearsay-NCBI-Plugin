@@ -12,6 +12,10 @@
   <packaging>bundle</packaging>
   <dependencies>
     <dependency>
+      <groupId>org.renci.gene2accession</groupId>
+      <artifactId>gene2accession-parser</artifactId>
+    </dependency>      
+    <dependency>
       <groupId>org.renci.gff</groupId>
       <artifactId>gff3-parser</artifactId>
       <scope>provided</scope>
