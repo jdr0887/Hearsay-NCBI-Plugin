@@ -1,21 +1,16 @@
 package org.renci.hearsay.commands.ncbi;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.util.List;
 import java.util.Scanner;
 import java.util.StringTokenizer;
 import java.util.zip.GZIPInputStream;
 
-import org.apache.commons.net.ftp.FTP;
-import org.apache.commons.net.ftp.FTPClient;
-import org.apache.commons.net.ftp.FTPReply;
+import org.renci.hearsay.commands.ncbi.util.FTPUtil;
 import org.renci.hearsay.dao.HearsayDAOBean;
 import org.renci.hearsay.dao.HearsayDAOException;
 import org.renci.hearsay.dao.model.Gene;
@@ -38,7 +33,7 @@ public class PullGenesRunnable implements Runnable {
     public void run() {
         logger.debug("ENTERING run()");
 
-        File genesFile = download();
+        File genesFile = FTPUtil.ncbiDownload("/gene/DATA/GENE_INFO/Mammalia", "Homo_sapiens.gene_info.gz");
 
         // parse
         try (BufferedReader br = new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(
@@ -114,46 +109,6 @@ public class PullGenesRunnable implements Runnable {
         genesFile.delete();
 
         logger.debug("FINISHED run()");
-    }
-
-    private File download() {
-        File ret = new File(System.getProperty("java.io.tmpdir", "/tmp"), "Homo_sapiens.gene_info.gz");
-
-        FTPClient ftpClient = new FTPClient();
-        // download
-        try {
-
-            ftpClient.connect("ftp.ncbi.nlm.nih.gov");
-
-            ftpClient.login("anonymous", "anonymous");
-            ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
-            ftpClient.enterLocalPassiveMode();
-
-            int reply = ftpClient.getReplyCode();
-            if (!FTPReply.isPositiveCompletion(reply)) {
-                ftpClient.disconnect();
-                System.err.println("FTP server refused connection.");
-                return null;
-            }
-
-            try (OutputStream fos = new BufferedOutputStream(new FileOutputStream(ret))) {
-                ftpClient.retrieveFile("/gene/DATA/GENE_INFO/Mammalia/Homo_sapiens.gene_info.gz", fos);
-                fos.flush();
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (ftpClient.isConnected()) {
-                    ftpClient.disconnect();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-        }
-        return ret;
     }
 
     public HearsayDAOBean getHearsayDAOBean() {
