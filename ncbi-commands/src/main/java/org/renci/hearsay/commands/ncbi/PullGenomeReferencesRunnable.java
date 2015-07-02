@@ -10,7 +10,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Scanner;
 
-import org.renci.hearsay.commands.ncbi.util.NCBIFTPUtil;
+import org.renci.hearsay.commands.ncbi.util.FTPUtil;
 import org.renci.hearsay.dao.HearsayDAOBean;
 import org.renci.hearsay.dao.HearsayDAOException;
 import org.renci.hearsay.dao.model.GenomeReference;
@@ -32,7 +32,7 @@ public class PullGenomeReferencesRunnable implements Runnable {
     public void run() {
         logger.debug("ENTERING run()");
 
-        File refseqAssemblySummaryFile = NCBIFTPUtil.download("/genomes/refseq", "assembly_summary_refseq.txt");
+        File refseqAssemblySummaryFile = FTPUtil.ncbiDownload("/genomes/refseq", "assembly_summary_refseq.txt");
 
         try (BufferedReader br = new BufferedReader(new FileReader(refseqAssemblySummaryFile))) {
             // # assembly_accession bioproject biosample wgs_master refseq_category taxid species_taxid
