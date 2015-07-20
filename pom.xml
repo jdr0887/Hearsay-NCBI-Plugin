@@ -2,7 +2,7 @@
   <parent>
     <groupId>org.renci.hearsay</groupId>
     <artifactId>parent</artifactId>
-    <version>0.0.13</version>
+    <version>0.0.17</version>
   </parent>
   <name>Hearsay :: Plugin :: NCBI</name>
   <modelVersion>4.0.0</modelVersion>
@@ -11,10 +11,10 @@
   <version>0.0.2-SNAPSHOT</version>
   <packaging>pom</packaging>
   <properties>
-    <hearsay.version>0.0.42-SNAPSHOT</hearsay.version>
+    <hearsay.version>0.0.44</hearsay.version>
     <gbff.parser.version>0.0.25</gbff.parser.version>
     <gff3.parser.version>0.0.3</gff3.parser.version>
-    <gene2accession.parser.version>0.0.3</gene2accession.parser.version>
+    <gene2accession.parser.version>0.0.6</gene2accession.parser.version>
   </properties>
   <issueManagement>
     <system>GitHub Issues</system>
