@@ -99,8 +99,7 @@ public class PullGenomeReferencesRunnable implements Runnable {
         } catch (HearsayDAOException | IOException e) {
             e.printStackTrace();
         }
-        refseqAssemblySummaryFile.delete();
-        logger.debug("FINISHED run()");
+        // refseqAssemblySummaryFile.delete();
     }
 
     private String getGenomeReferenceAssemblyId(String assemblyAccession) {
