@@ -18,11 +18,11 @@ public class FTPUtil {
 
     public static File download(String host, String path, String name) {
         logger.info("downloading: {}", String.format("%s:%s/%s", host, path, name));
-        File ret = new File("/tmp", name);
+        File ret = new File("/home/jdr0887/Downloads", name);
         if (ret.exists()) {
             return ret;
         }
-        ret = new File(System.getProperty("java.io.tmpdir", "/tmp"), name);
+        ret = new File(System.getProperty("java.io.tmpdir", "/home/jdr0887/Downloads"), name);
         FTPClient ftpClient = new FTPClient();
         try {
             ftpClient.connect(host);
