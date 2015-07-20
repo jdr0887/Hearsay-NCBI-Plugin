@@ -3,7 +3,6 @@ package org.renci.hearsay.commands.ncbi;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Scanner;
@@ -12,7 +11,7 @@ import java.util.zip.GZIPInputStream;
 
 import org.renci.hearsay.commands.ncbi.util.FTPUtil;
 import org.renci.hearsay.dao.HearsayDAOBean;
-import org.renci.hearsay.dao.HearsayDAOException;
+import org.renci.hearsay.dao.model.Chromosome;
 import org.renci.hearsay.dao.model.Gene;
 import org.renci.hearsay.dao.model.GeneSymbol;
 import org.renci.hearsay.dao.model.Identifier;
@@ -36,8 +35,10 @@ public class PullGenesRunnable implements Runnable {
         File genesFile = FTPUtil.ncbiDownload("/gene/DATA/GENE_INFO/Mammalia", "Homo_sapiens.gene_info.gz");
 
         // parse
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(
-                genesFile))))) {
+        try (FileInputStream fis = new FileInputStream(genesFile);
+                GZIPInputStream gis = new GZIPInputStream(fis);
+                InputStreamReader isr = new InputStreamReader(gis);
+                BufferedReader br = new BufferedReader(isr)) {
 
             // #Format: tax_id GeneID Symbol LocusTag Synonyms dbXrefs chromosome map_location description type_of_gene
             // Symbol_from_nomenclature_authority Full_name_from_nomenclature_authority Nomenclature_status
@@ -67,17 +68,39 @@ public class PullGenesRunnable implements Runnable {
                     // String otherDesignations = st.nextToken();
                     // String modificationDate = st.nextToken();
 
-                    Gene exampleGene = new Gene();
-                    exampleGene.setDescription(description);
-                    exampleGene.setSymbol(symbol);
+                    if (chromosome.equals("-") || chromosome.equalsIgnoreCase("Un")) {
+                        continue;
+                    }
 
-                    List<Gene> potentiallyFoundGeneList = hearsayDAOBean.getGeneDAO().findByExample(exampleGene);
-                    logger.info(exampleGene.toString());
+                    Gene gene = new Gene();
+                    gene.setDescription(description);
+                    gene.setSymbol(symbol);
+                    List<Gene> potentiallyFoundGeneList = hearsayDAOBean.getGeneDAO().findByExample(gene);
                     if (potentiallyFoundGeneList != null && !potentiallyFoundGeneList.isEmpty()) {
                         logger.warn("Gene is already persisted");
                         continue;
                     }
-                    exampleGene.setId(hearsayDAOBean.getGeneDAO().save(exampleGene));
+                    gene.setId(hearsayDAOBean.getGeneDAO().save(gene));
+                    logger.info(gene.toString());
+
+                    if (chromosome.indexOf("|") != -1) {
+                        String[] split = chromosome.split("|");
+                        for (String chr : split) {
+                            List<Chromosome> potentialChromosomeList = hearsayDAOBean.getChromosomeDAO()
+                                    .findByName(chr);
+                            if (potentialChromosomeList != null && !potentialChromosomeList.isEmpty()) {
+                                gene.getChromosomes().addAll(potentialChromosomeList);
+                            }
+                        }
+                    } else {
+                        List<Chromosome> potentialChromosomeList = hearsayDAOBean.getChromosomeDAO().findByName(
+                                chromosome);
+                        if (potentialChromosomeList != null && !potentialChromosomeList.isEmpty()) {
+                            gene.getChromosomes().addAll(potentialChromosomeList);
+                        }
+                    }
+
+                    hearsayDAOBean.getGeneDAO().save(gene);
 
                     if (!synonyms.trim().equals("-")) {
                         StringTokenizer geneSymbolStringTokenizer = new StringTokenizer(synonyms, "|");
@@ -86,29 +109,27 @@ public class PullGenesRunnable implements Runnable {
                             String geneSymbol = geneSymbolStringTokenizer.nextToken();
                             GeneSymbol gs = new GeneSymbol();
                             gs.setSymbol(geneSymbol);
-                            gs.setGene(exampleGene);
+                            gs.setGene(gene);
                             gs.setId(hearsayDAOBean.getGeneSymbolDAO().save(gs));
-                            // System.out.println(geneSymbol.toString());
-                            exampleGene.getAliases().add(gs);
+                            logger.debug(geneSymbol.toString());
+                            gene.getAliases().add(gs);
                         }
                     }
 
                     Identifier identifier = new Identifier("www.ncbi.nlm.nih.gov/gene", geneId);
                     identifier.setId(hearsayDAOBean.getIdentifierDAO().save(identifier));
-                    logger.info(identifier.toString());
-                    exampleGene.getIdentifiers().add(identifier);
-                    hearsayDAOBean.getGeneDAO().save(exampleGene);
+                    logger.debug(identifier.toString());
+                    gene.getIdentifiers().add(identifier);
+                    hearsayDAOBean.getGeneDAO().save(gene);
 
                 }
 
             }
 
-        } catch (IOException | HearsayDAOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        genesFile.delete();
-
-        logger.debug("FINISHED run()");
+        // genesFile.delete();
     }
 
     public HearsayDAOBean getHearsayDAOBean() {
