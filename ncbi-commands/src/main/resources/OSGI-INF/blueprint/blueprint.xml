@@ -17,9 +17,15 @@
         <property name="hearsayDAOBean" ref="hearsayDAOBean" />
       </action>
     </command>
+    <command>
+      <action class="org.renci.hearsay.commands.ncbi.PullTranscriptsAction">
+        <property name="hearsayDAOBean" ref="hearsayDAOBean" />
+      </action>
+    </command>
   </command-bundle>
 
   <reference id="alignmentDAO" interface="org.renci.hearsay.dao.AlignmentDAO" />
+  <reference id="chromosomeDAO" interface="org.renci.hearsay.dao.ChromosomeDAO" />
   <reference id="canonicalAlleleDAO" interface="org.renci.hearsay.dao.CanonicalAlleleDAO" />
   <reference id="featureDAO" interface="org.renci.hearsay.dao.FeatureDAO" />
   <reference id="geneDAO" interface="org.renci.hearsay.dao.GeneDAO" />
@@ -37,6 +43,7 @@
 
   <bean id="hearsayDAOBean" class="org.renci.hearsay.dao.HearsayDAOBean">
     <property name="alignmentDAO" ref="alignmentDAO" />
+    <property name="chromosomeDAO" ref="chromosomeDAO" />
     <property name="canonicalAlleleDAO" ref="canonicalAlleleDAO" />
     <property name="featureDAO" ref="featureDAO" />
     <property name="geneDAO" ref="geneDAO" />
