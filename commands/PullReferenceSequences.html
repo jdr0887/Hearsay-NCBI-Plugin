@@ -172,16 +172,16 @@ List&lt;G2AFilter&gt; filters = Arrays.asList(new G2AFilter[] { new G2ATaxonIdFi
         new G2AProteinAccessionVersionPrefixFilter(Arrays.asList(new String[] { &quot;NP_&quot; })),
         new G2ARNANucleotideAccessionVersionPrefixFilter(Arrays.asList(new String[] { &quot;NM_&quot;, &quot;NR_&quot; })) });
 G2AAndFilter andFilter = new G2AAndFilter(filters);
-</pre></div>
+	</pre></div>
         
 <p>Here, the command is filtering out ReferenceSequence
-        instances that:</p>
+        instances that do not:</p>
 	
 <ul>
 	  
 <li>have a human taxonomy identifier</li>
 	  
-<li>are of a primary or alternate assembly</li>
+<li>have a primary or alternate assembly</li>
 	  
 <li>have the protein accession prefix of &quot;NP_&quot;</li>
 	  

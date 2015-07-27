@@ -139,13 +139,31 @@
 	
 <div class="source">
 <pre>ncbi:pull-alignments</pre></div>	
-      </div>                        
+      </div>
       
 <div class="section">
-<h3>NCBI<a name="NCBI"></a></h3>
+<h3>Source<a name="Source"></a></h3>
 	
-<p>asdfadsf</p>
+<p>This command uses the following file as the source for a
+	list of Alignment instances:</p>
+	
+<div class="source">
+<pre>ftp://ftp.ncbi.nlm.nih.gov/refseq/H_sapiens/alignments/GCF_000001405.28_knownrefseq_alignments.gff3</pre></div>
+	
+<p>The following files are also downloaded for Feature and
+	Alignment positioning instances:</p>
+	
+<div class="source">
+<pre>ftp://ftp.ncbi.nlm.nih.gov/refseq/release/vertebrate_mammalian/*.rna.gbff.gz</pre></div>
       </div>
+      
+<div class="section">
+<h3>Threading &amp; Synchronization<a name="Threading__Synchronization"></a></h3>
+	
+<p>This command does not try to synchronize Alignment
+	instances with previously created instances. Multithreading is
+	heavily used.</p>
+      </div>            
     </div>
   
 
