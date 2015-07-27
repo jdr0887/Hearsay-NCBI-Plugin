@@ -34,16 +34,9 @@ public class Scratch {
 
     @Test
     public void scratch() throws IOException {
-        File f = new File("/home/jdr0887/Downloads", "gene2refseq.filtered");
-        List<String> lines = FileUtils.readLines(f);
-        for (String line : lines) {
-            String[] asdf = line.split("\t");
-            System.out.println(asdf[0]);
-            System.out.println(asdf[9]);
-            System.out.println(asdf[10]);
-            System.out.println(asdf[12]);
-            System.out.println(asdf[15]);
-        }
+        String asdf = "NM_000660.5:c.-171delC";
+        String a = asdf.substring(0, asdf.indexOf(":"));
+        System.out.println(a);
     }
 
     @Test
