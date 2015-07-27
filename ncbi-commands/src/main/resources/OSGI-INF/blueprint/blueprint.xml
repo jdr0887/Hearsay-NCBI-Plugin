@@ -3,6 +3,11 @@
 
   <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.1.0">
     <command>
+      <action class="org.renci.hearsay.commands.ncbi.AddAlignmentUTRsAction">
+        <property name="hearsayDAOBean" ref="hearsayDAOBean" />
+      </action>
+    </command>
+    <command>
       <action class="org.renci.hearsay.commands.ncbi.PullGenesAction">
         <property name="hearsayDAOBean" ref="hearsayDAOBean" />
       </action>
@@ -18,7 +23,7 @@
       </action>
     </command>
     <command>
-      <action class="org.renci.hearsay.commands.ncbi.PullTranscriptsAction">
+      <action class="org.renci.hearsay.commands.ncbi.PullAlignmentsAction">
         <property name="hearsayDAOBean" ref="hearsayDAOBean" />
       </action>
     </command>
