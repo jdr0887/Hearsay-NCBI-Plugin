@@ -5,10 +5,20 @@
     <section name="Pull Alignments">
       <subsection name="Command">
 	<source>ncbi:pull-alignments</source>	
-      </subsection>                        
-      <subsection name="NCBI">
-	<p>asdfadsf</p>
       </subsection>
+      <subsection name="Source">
+	<p>This command uses the following file as the source for a
+	list of Alignment instances:</p>
+	<source>ftp://ftp.ncbi.nlm.nih.gov/refseq/H_sapiens/alignments/GCF_000001405.28_knownrefseq_alignments.gff3</source>
+	<p>The following files are also downloaded for Feature and
+	Alignment positioning instances:</p>
+	<source>ftp://ftp.ncbi.nlm.nih.gov/refseq/release/vertebrate_mammalian/*.rna.gbff.gz</source>
+      </subsection>
+      <subsection name="Threading &amp; Synchronization">
+	<p>This command does not try to synchronize Alignment
+	instances with previously created instances. Multithreading is
+	heavily used.</p>
+      </subsection>            
     </section>
   </body>
 </document>
