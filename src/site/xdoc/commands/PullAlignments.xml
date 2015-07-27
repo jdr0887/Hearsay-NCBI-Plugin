@@ -1,0 +1,14 @@
+<document>
+  <properties>
+  </properties>
+  <body>
+    <section name="Pull Alignments">
+      <subsection name="Command">
+	<source>ncbi:pull-alignments</source>	
+      </subsection>                        
+      <subsection name="NCBI">
+	<p>asdfadsf</p>
+      </subsection>
+    </section>
+  </body>
+</document>

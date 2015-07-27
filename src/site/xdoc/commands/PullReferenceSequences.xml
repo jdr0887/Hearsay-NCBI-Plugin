@@ -1,0 +1,40 @@
+<document>
+  <properties>
+  </properties>
+  <body>
+    <section name="Pull Reference Sequences">
+      <subsection name="Command">
+	<source>ncbi:pull-reference-sequences</source>	
+      </subsection>      
+      <subsection name="Source">
+	<p>This command uses the following file as the source for a
+	list of Reference Sequence instances:</p>
+	<source>ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene2refseq.gz</source>	
+      </subsection>
+      <subsection name="Threading &amp; Synchronization">
+	<p>This command assumes that ReferenceSequence instances do
+	not exist already exist.  Multithreading is used to more
+	quickly persist the data.</p>
+      </subsection>
+      <subsection name="Filtering">
+	<p>There are a number of filtering strategies used:</p>
+	<source>
+G2AParser gene2AccessionParser = G2AParser.getInstance(8);
+List&lt;G2AFilter&gt; filters = Arrays.asList(new G2AFilter[] { new G2ATaxonIdFilter(9606),
+        new G2AAssemblyFilter("Reference.*(Primary Assembly|ALT_REF_LOCI.*)"),
+        new G2AProteinAccessionVersionPrefixFilter(Arrays.asList(new String[] { "NP_" })),
+        new G2ARNANucleotideAccessionVersionPrefixFilter(Arrays.asList(new String[] { "NM_", "NR_" })) });
+G2AAndFilter andFilter = new G2AAndFilter(filters);
+</source>
+        <p>Here, the command is filtering out ReferenceSequence
+        instances that:</p>
+	<ul>
+	  <li>have a human taxonomy identifier</li>
+	  <li>are of a primary or alternate assembly</li>
+	  <li>have the protein accession prefix of "NP_"</li>
+	  <li>have the rna nucleotide accession prefix of "NM_" or "NR_"</li>	  
+	</ul>
+      </subsection>            
+    </section>
+  </body>
+</document>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project name="Hearsay">
+  <skin>
+    <groupId>org.apache.maven.skins</groupId>
+    <artifactId>maven-fluido-skin</artifactId>
+    <version>1.3.1</version>
+  </skin>
+  <custom>
+    <fluidoSkin>
+      <sideBarEnabled>true</sideBarEnabled>
+    </fluidoSkin>
+  </custom>
+  <bannerLeft>
+    <name>${project.name}</name>
+  </bannerLeft>
+  <body>
+    <menu name="Overview">
+      <item name="About" href="index.html"/>
+    </menu>
+    <menu name="Commands">
+      <item name="Pull Genes" href="commands/PullGenes.html"/>
+      <item name="Pull Genome References" href="commands/PullGenomeReferences.html"/>
+      <item name="Pull Reference Sequences" href="commands/PullReferenceSequences.html"/>
+      <item name="Pull Alignments" href="commands/PullAlignments.html"/>
+    </menu>
+    <menu ref="reports"/>
+  </body>
+</project>
