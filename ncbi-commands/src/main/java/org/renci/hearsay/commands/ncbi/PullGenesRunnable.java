@@ -77,7 +77,7 @@ public class PullGenesRunnable implements Runnable {
                     gene.setSymbol(symbol);
                     List<Gene> potentiallyFoundGeneList = hearsayDAOBean.getGeneDAO().findByExample(gene);
                     if (potentiallyFoundGeneList != null && !potentiallyFoundGeneList.isEmpty()) {
-                        logger.warn("Gene is already persisted");
+                        logger.warn("Gene is already persisted: {}", symbol);
                         continue;
                     }
                     gene.setId(hearsayDAOBean.getGeneDAO().save(gene));
