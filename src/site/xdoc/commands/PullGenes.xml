@@ -12,10 +12,10 @@
 	<source>ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/GENE_INFO/Mammalia/Homo_sapiens.gene_info.gz</source>
       </subsection>
       <subsection name="Threading &amp; Synchronization">
-	<p>This plugin assumes that Gene instances may already exist.
+	<p>This command assumes that Gene instances may already exist.
 	Therefore, it is written to check for the existence of a Gene
 	by symbol before persisting a new instance.  And since the
-	plugin checks for the existence of previously persisted Gene
+	command checks for the existence of previously persisted Gene
 	instances, multithreading is not used....avoiding race
 	conditions.</p>
       </subsection>      
