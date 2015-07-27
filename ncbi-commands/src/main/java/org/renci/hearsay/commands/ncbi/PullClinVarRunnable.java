@@ -35,7 +35,6 @@ import org.renci.hearsay.dao.model.IntronOffset;
 import org.renci.hearsay.dao.model.Location;
 import org.renci.hearsay.dao.model.MolecularConsequence;
 import org.renci.hearsay.dao.model.MolecularConsequenceType;
-import org.renci.hearsay.dao.model.MoleculeType;
 import org.renci.hearsay.dao.model.ReferenceCoordinate;
 import org.renci.hearsay.dao.model.ReferenceSequence;
 import org.renci.hearsay.dao.model.SimpleAllele;
@@ -92,20 +91,19 @@ public class PullClinVarRunnable implements Runnable {
                 canonicalAllele.setId(hearsayDAOBean.getCanonicalAlleleDAO().save(canonicalAllele));
 
                 if ("Variant".equals(mst.getType())) {
-                    Identifier identifier = new Identifier();
-                    identifier.setSystem("http://www.ncbi.nlm.nih.gov/clinvar");
-                    identifier.setValue(mst.getID().toString());
+                    Identifier identifier = new Identifier("http://www.ncbi.nlm.nih.gov/clinvar", mst.getID()
+                            .toString());
                     identifier.setId(hearsayDAOBean.getIdentifierDAO().save(identifier));
                     logger.info(identifier.toString());
                     canonicalAllele.getRelatedIdentifiers().add(identifier);
                 }
 
-                for (MoleculeType mType : MoleculeType.values()) {
-                    if (mType.getPrefixes().contains(canonicalAllele.getName().substring(0, 3))) {
-                        canonicalAllele.setMoleculeType(mType);
-                        break;
-                    }
-                }
+                // for (MoleculeType mType : MoleculeType.values()) {
+                // if (mType.getPrefixes().contains(canonicalAllele.getName().substring(0, 3))) {
+                // canonicalAllele.setMoleculeType(mType);
+                // break;
+                // }
+                // }
 
                 for (Measure measure : mst.getMeasure()) {
 
@@ -152,7 +150,7 @@ public class PullClinVarRunnable implements Runnable {
 
                             if (StringUtils.isNotEmpty(refSeqId) && StringUtils.isNotBlank(sequenceOntologyId)) {
                                 for (SimpleAllele sa : simpleAlleleSet) {
-                                    if (sa.getName().startsWith(refSeqId.substring(0, refSeqId.indexOf(".")))) {
+                                    if (sa.getName().startsWith(refSeqId.substring(0, refSeqId.indexOf(":")))) {
                                         MolecularConsequence mc = new MolecularConsequence(
                                                 Integer.valueOf(sequenceOntologyId.replace("SO:", "")),
                                                 MolecularConsequenceType.PRIMARY);
@@ -165,7 +163,7 @@ public class PullClinVarRunnable implements Runnable {
                     }
 
                     for (SimpleAllele sa : simpleAlleleSet) {
-                        String referenceSequenceAccession = sa.getName().substring(0, sa.getName().indexOf("."));
+                        String referenceSequenceAccession = sa.getName().substring(0, sa.getName().indexOf(":"));
                         ReferenceSequence referenceSequence = null;
                         List<ReferenceSequence> potentialRefSeqList = hearsayDAOBean.getReferenceSequenceDAO()
                                 .findByIdentifierValue(referenceSequenceAccession);
