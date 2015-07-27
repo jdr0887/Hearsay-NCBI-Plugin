@@ -11,10 +11,10 @@
   <version>0.0.2-SNAPSHOT</version>
   <packaging>pom</packaging>
   <properties>
-    <hearsay.version>0.0.44</hearsay.version>
+    <hearsay.version>0.0.45-SNAPSHOT</hearsay.version>
     <gbff.parser.version>0.0.25</gbff.parser.version>
     <gff3.parser.version>0.0.3</gff3.parser.version>
-    <gene2accession.parser.version>0.0.6</gene2accession.parser.version>
+    <gene2accession.parser.version>0.0.7</gene2accession.parser.version>
   </properties>
   <issueManagement>
     <system>GitHub Issues</system>
