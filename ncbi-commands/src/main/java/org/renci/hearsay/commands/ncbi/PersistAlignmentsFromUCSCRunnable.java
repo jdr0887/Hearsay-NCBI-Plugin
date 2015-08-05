@@ -15,6 +15,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.renci.gbff.model.Feature;
 import org.renci.gbff.model.Sequence;
@@ -107,7 +108,7 @@ public class PersistAlignmentsFromUCSCRunnable implements Runnable {
             List<ReferenceSequence> potentialRefSeqs = hearsayDAOBean.getReferenceSequenceDAO().findByIdentifiers(
                     identifierIdList);
 
-            if (potentialRefSeqs == null || (potentialRefSeqs != null && potentialRefSeqs.isEmpty())) {
+            if (CollectionUtils.isEmpty(potentialRefSeqs)) {
                 logger.warn("Could not find ReferenceSequence: refSeqVersionedAccession = {}, proteinAccession = {}",
                         refSeqVersionedAccession, proteinAccession);
                 return;
