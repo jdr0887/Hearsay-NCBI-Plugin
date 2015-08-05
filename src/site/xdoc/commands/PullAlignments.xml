@@ -13,6 +13,10 @@
 	<p>The following files are also downloaded for Feature and
 	Alignment positioning instances:</p>
 	<source>ftp://ftp.ncbi.nlm.nih.gov/refseq/release/vertebrate_mammalian/*.rna.gbff.gz</source>
+	<p>Downloading all the "vertebrate_mammalian.*.rna.gbff.gz"
+	files will take about 7GB of disk space.  Processing through
+	all this data will take some time as the data is
+	compressed.</p>
       </subsection>
       <subsection name="Threading &amp; Synchronization">
 	<p>This command does not try to synchronize Alignment
