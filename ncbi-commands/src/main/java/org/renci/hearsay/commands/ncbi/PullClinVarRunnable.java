@@ -14,6 +14,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.renci.clinvar.MeasureSetType;
@@ -167,7 +168,7 @@ public class PullClinVarRunnable implements Runnable {
                         ReferenceSequence referenceSequence = null;
                         List<ReferenceSequence> potentialRefSeqList = hearsayDAOBean.getReferenceSequenceDAO()
                                 .findByIdentifierValue(referenceSequenceAccession);
-                        if (potentialRefSeqList != null && !potentialRefSeqList.isEmpty()) {
+                        if (CollectionUtils.isNotEmpty(potentialRefSeqList)) {
                             referenceSequence = potentialRefSeqList.get(0);
                         }
 
@@ -226,7 +227,7 @@ public class PullClinVarRunnable implements Runnable {
                             Identifier identifier = new Identifier("www.ncbi.nlm.nih.gov/snp", dbSNPId);
                             List<Identifier> possibleIdentifiers = hearsayDAOBean.getIdentifierDAO().findByExample(
                                     identifier);
-                            if (possibleIdentifiers != null && !possibleIdentifiers.isEmpty()) {
+                            if (CollectionUtils.isNotEmpty(possibleIdentifiers)) {
                                 identifier = possibleIdentifiers.get(0);
                             } else {
                                 identifier.setId(hearsayDAOBean.getIdentifierDAO().save(identifier));
