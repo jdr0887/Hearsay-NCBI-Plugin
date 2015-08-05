@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -17,8 +18,61 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.math3.util.Pair;
 import org.junit.Test;
 import org.renci.hearsay.commands.ncbi.util.FTPUtil;
+import org.renci.hearsay.dao.model.Location;
+import org.renci.hearsay.dao.model.Region;
+import org.renci.hearsay.dao.model.StrandType;
 
 public class Scratch {
+
+    @Test
+    public void asdf() {
+
+        LinkedList<String> alignmentsLines = new LinkedList<String>();
+
+        File alignmentsFile = FTPUtil.ncbiDownload("/refseq/H_sapiens/alignments",
+                "GCF_000001405.28_knownrefseq_alignments.gff3");
+        try (FileInputStream fis = new FileInputStream(alignmentsFile);
+                InputStreamReader isr = new InputStreamReader(fis);
+                BufferedReader br = new BufferedReader(isr)) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                alignmentsLines.add(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        for (String line : alignmentsLines) {
+
+            if (line.startsWith("#")) {
+                continue;
+            }
+
+            // NT_187633.1 RefSeq cDNA_match 278295 278486 192 - . ID=aln45579;Target=NM_000853.3 1 192
+            // +;gap_count=0;identity=1;idty=1;num_ident=1093;num_mismatch=0;pct_coverage=100;pct_identity_gap=100;pct_identity_ungap=100;score=192
+            String[] columns = line.split("\t");
+            String genomicAccession = columns[0];
+            String genomicStart = columns[3];
+            String genomicStop = columns[4];
+            String strand = columns[6];
+            String attributes = columns[8];
+
+            if (!genomicAccession.equals("NC_000019.10")) {
+                continue;
+            }
+            
+            if (attributes.contains("NM_130786.3")) {
+                System.out.println(line);
+                String[] attributeSplit = attributes.split(";");
+                String[] targetSplit = attributeSplit[1].split(" ");
+                Integer start = Integer.valueOf(targetSplit[1]);
+                Integer stop = Integer.valueOf(targetSplit[2]);
+                System.out.println(String.format("%s:%s", start.toString(), stop.toString()));
+            }
+            
+        }
+
+    }
 
     @Test
     public void test() {
