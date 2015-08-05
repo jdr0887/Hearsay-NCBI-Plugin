@@ -27,6 +27,11 @@
         <property name="hearsayDAOBean" ref="hearsayDAOBean" />
       </action>
     </command>
+    <command>
+      <action class="org.renci.hearsay.commands.ncbi.PullClinVarAction">
+        <property name="hearsayDAOBean" ref="hearsayDAOBean" />
+      </action>
+    </command>
   </command-bundle>
 
   <reference id="alignmentDAO" interface="org.renci.hearsay.dao.AlignmentDAO" />
