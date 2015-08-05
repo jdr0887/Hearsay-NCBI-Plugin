@@ -2,10 +2,10 @@ package org.renci.hearsay.commands.ncbi;
 
 import java.util.List;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.renci.gene2accession.model.OrientationType;
 import org.renci.gene2accession.model.Record;
 import org.renci.hearsay.dao.HearsayDAOBean;
-import org.renci.hearsay.dao.HearsayDAOException;
 import org.renci.hearsay.dao.model.Gene;
 import org.renci.hearsay.dao.model.GenomeReference;
 import org.renci.hearsay.dao.model.Identifier;
@@ -57,7 +57,7 @@ public class PersistReferenceSequencesRunnable implements Runnable {
             Gene exampleGene = new Gene();
             exampleGene.setSymbol(record.getSymbol());
             List<Gene> potentialGenes = hearsayDAOBean.getGeneDAO().findByExample(exampleGene);
-            if (potentialGenes != null && !potentialGenes.isEmpty()) {
+            if (CollectionUtils.isNotEmpty(potentialGenes)) {
                 referenceSequence.setGene(potentialGenes.get(0));
             }
 
@@ -67,7 +67,7 @@ public class PersistReferenceSequencesRunnable implements Runnable {
                     .replace("Primary Assembly", "").trim());
             List<GenomeReference> potentialGenomeReferences = hearsayDAOBean.getGenomeReferenceDAO().findByExample(
                     exampleGenomeReference);
-            if (potentialGenomeReferences != null && !potentialGenomeReferences.isEmpty()) {
+            if (CollectionUtils.isNotEmpty(potentialGenomeReferences)) {
                 referenceSequence.setGenomeReference(potentialGenomeReferences.get(0));
             }
 
@@ -75,7 +75,7 @@ public class PersistReferenceSequencesRunnable implements Runnable {
             String versionedRefSeqAccession = record.getRNANucleotideAccessionVersion();
             Identifier identifier = new Identifier("www.ncbi.nlm.nih.gov/nuccore", versionedRefSeqAccession);
             List<Identifier> possibleIdentifiers = hearsayDAOBean.getIdentifierDAO().findByExample(identifier);
-            if (possibleIdentifiers != null && !possibleIdentifiers.isEmpty()) {
+            if (CollectionUtils.isNotEmpty(possibleIdentifiers)) {
                 identifier = possibleIdentifiers.get(0);
             } else {
                 identifier.setId(hearsayDAOBean.getIdentifierDAO().save(identifier));
@@ -86,7 +86,7 @@ public class PersistReferenceSequencesRunnable implements Runnable {
             String versionedProteinAccession = record.getProteinAccessionVersion();
             identifier = new Identifier("www.ncbi.nlm.nih.gov/protein", versionedProteinAccession);
             possibleIdentifiers = hearsayDAOBean.getIdentifierDAO().findByExample(identifier);
-            if (possibleIdentifiers != null && !possibleIdentifiers.isEmpty()) {
+            if (CollectionUtils.isNotEmpty(possibleIdentifiers)) {
                 identifier = possibleIdentifiers.get(0);
             } else {
                 identifier.setId(hearsayDAOBean.getIdentifierDAO().save(identifier));
@@ -97,7 +97,7 @@ public class PersistReferenceSequencesRunnable implements Runnable {
             String versionedGenomicAccession = record.getGenomicNucleotideAccessionVersion();
             identifier = new Identifier("www.ncbi.nlm.nih.gov/genome", versionedGenomicAccession);
             possibleIdentifiers = hearsayDAOBean.getIdentifierDAO().findByExample(identifier);
-            if (possibleIdentifiers != null && !possibleIdentifiers.isEmpty()) {
+            if (CollectionUtils.isNotEmpty(possibleIdentifiers)) {
                 identifier = possibleIdentifiers.get(0);
             } else {
                 identifier.setId(hearsayDAOBean.getIdentifierDAO().save(identifier));
