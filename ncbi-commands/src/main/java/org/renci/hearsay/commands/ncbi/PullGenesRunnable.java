@@ -9,6 +9,7 @@ import java.util.Scanner;
 import java.util.StringTokenizer;
 import java.util.zip.GZIPInputStream;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.renci.hearsay.commands.ncbi.util.FTPUtil;
 import org.renci.hearsay.dao.HearsayDAOBean;
 import org.renci.hearsay.dao.model.Chromosome;
@@ -76,7 +77,7 @@ public class PullGenesRunnable implements Runnable {
                     gene.setDescription(description);
                     gene.setSymbol(symbol);
                     List<Gene> potentiallyFoundGeneList = hearsayDAOBean.getGeneDAO().findByExample(gene);
-                    if (potentiallyFoundGeneList != null && !potentiallyFoundGeneList.isEmpty()) {
+                    if (CollectionUtils.isNotEmpty(potentiallyFoundGeneList)) {
                         logger.warn("Gene is already persisted: {}", symbol);
                         continue;
                     }
@@ -88,14 +89,14 @@ public class PullGenesRunnable implements Runnable {
                         for (String chr : split) {
                             List<Chromosome> potentialChromosomeList = hearsayDAOBean.getChromosomeDAO()
                                     .findByName(chr);
-                            if (potentialChromosomeList != null && !potentialChromosomeList.isEmpty()) {
+                            if (CollectionUtils.isNotEmpty(potentialChromosomeList)) {
                                 gene.getChromosomes().addAll(potentialChromosomeList);
                             }
                         }
                     } else {
                         List<Chromosome> potentialChromosomeList = hearsayDAOBean.getChromosomeDAO().findByName(
                                 chromosome);
-                        if (potentialChromosomeList != null && !potentialChromosomeList.isEmpty()) {
+                        if (CollectionUtils.isNotEmpty(potentialChromosomeList)) {
                             gene.getChromosomes().addAll(potentialChromosomeList);
                         }
                     }
