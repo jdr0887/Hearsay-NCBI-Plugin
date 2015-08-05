@@ -1,9 +1,11 @@
 package org.renci.hearsay.commands.ncbi;
 
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.math.IntRange;
 import org.renci.hearsay.dao.HearsayDAOBean;
 import org.renci.hearsay.dao.model.Alignment;
@@ -33,7 +35,7 @@ public class AddAlignmentUTRsRunnable implements Runnable {
         try {
 
             List<Gene> geneList = hearsayDAOBean.getGeneDAO().findAll();
-            if (geneList != null && !geneList.isEmpty()) {
+            if (CollectionUtils.isNotEmpty(geneList)) {
                 for (Gene gene : geneList) {
 
                     logger.info(gene.toString());
@@ -41,10 +43,10 @@ public class AddAlignmentUTRsRunnable implements Runnable {
                     List<ReferenceSequence> referenceSequenceList = hearsayDAOBean.getReferenceSequenceDAO()
                             .findByGeneId(gene.getId());
 
-                    if (referenceSequenceList != null && !referenceSequenceList.isEmpty()) {
-                        
+                    if (CollectionUtils.isNotEmpty(referenceSequenceList)) {
+
                         for (ReferenceSequence referenceSequence : referenceSequenceList) {
-                            
+
                             StrandType strandType = referenceSequence.getStrandType();
 
                             logger.info(referenceSequence.toString());
@@ -52,229 +54,286 @@ public class AddAlignmentUTRsRunnable implements Runnable {
                             List<Alignment> alignmentList = hearsayDAOBean.getAlignmentDAO().findByReferenceSequenceId(
                                     referenceSequence.getId());
 
-                            if (alignmentList != null && !alignmentList.isEmpty()) {
+                            if (CollectionUtils.isNotEmpty(alignmentList)) {
 
-                                logger.info("alignmentList.size(): {}", alignmentList.size());
+                                logger.debug("alignmentList.size(): {}", alignmentList.size());
 
                                 for (Alignment alignment : alignmentList) {
+                                    Location proteinLocation = alignment.getProteinLocation();
+                                    logger.info("Protein: {}", proteinLocation.toString());
 
-                                    // adding utr regions
+                                    List<Region> regionList = alignment.getRegions();
+
                                     List<Region> utrRegionList = new ArrayList<Region>();
-                                    Iterator<Region> regionIter = alignment.getRegions().iterator();
-                                    Region firstRegion = alignment.getRegions().get(0);
-                                    Region lastRegion = alignment.getRegions().get(alignment.getRegions().size() - 1);
-                                    while (regionIter.hasNext()) {
-                                        Region region = regionIter.next();
 
-                                        if (alignment.getProteinLocation().getStart()
-                                                .equals(firstRegion.getTranscriptLocation().getStart())
-                                                && alignment.getProteinLocation().getStop()
-                                                        .equals(lastRegion.getTranscriptLocation().getStop())) {
-                                            continue;
+                                    if (CollectionUtils.isNotEmpty(regionList)) {
+
+                                        Collections.sort(regionList, new Comparator<Region>() {
+                                            @Override
+                                            public int compare(Region o1, Region o2) {
+                                                return Integer.compare(o1.getRegionLocation().getStart(), o2
+                                                        .getRegionLocation().getStart());
+                                            }
+                                        });
+
+                                        for (Region region : regionList) {
+                                            Location regionLocation = region.getRegionLocation();
+                                            if (regionLocation == null) {
+                                                continue;
+                                            }
+                                            int regionStart = regionLocation.getStart();
+                                            int regionStop = regionLocation.getStop();
+
+                                            Location transcriptLocation = region.getTranscriptLocation();
+                                            if (transcriptLocation == null) {
+                                                continue;
+                                            }
+                                            int transcriptStart = transcriptLocation.getStart();
+                                            int transcriptStop = transcriptLocation.getStop();
+                                            IntRange transcriptRange = transcriptLocation.toRange();
+
+                                            if (strandType.equals(StrandType.MINUS)) {
+
+                                                if (transcriptRange.containsInteger(proteinLocation.getStart())) {
+
+                                                    transcriptLocation.setStart(proteinLocation.getStart() - 1);
+                                                    hearsayDAOBean.getLocationDAO().save(transcriptLocation);
+
+                                                    regionLocation.setStart(regionLocation.getStop()
+                                                            - transcriptLocation.diff());
+                                                    hearsayDAOBean.getLocationDAO().save(regionLocation);
+
+                                                    Region newRegion = new Region(RegionType.EXON);
+                                                    newRegion.setId(hearsayDAOBean.getRegionDAO().save(newRegion));
+                                                    newRegion.setAlignment(alignment);
+
+                                                    Location newTranscriptLocation = new Location(transcriptStart,
+                                                            proteinLocation.getStart());
+                                                    newTranscriptLocation.setId(hearsayDAOBean.getLocationDAO().save(
+                                                            newTranscriptLocation));
+                                                    newRegion.setTranscriptLocation(newTranscriptLocation);
+
+                                                    Location newRegionLocation = new Location(regionLocation.getStart()
+                                                            - 1 - newTranscriptLocation.diff(),
+                                                            regionLocation.getStart() - 1);
+                                                    newRegionLocation.setId(hearsayDAOBean.getLocationDAO().save(
+                                                            newRegionLocation));
+                                                    newRegion.setRegionLocation(newRegionLocation);
+                                                    hearsayDAOBean.getRegionDAO().save(newRegion);
+
+                                                    utrRegionList.add(newRegion);
+                                                }
+
+                                                if (transcriptRange.containsInteger(proteinLocation.getStop())) {
+
+                                                    transcriptLocation.setStart(proteinLocation.getStop());
+                                                    hearsayDAOBean.getLocationDAO().save(transcriptLocation);
+
+                                                    regionLocation.setStart(regionLocation.getStop()
+                                                            - transcriptLocation.diff());
+                                                    hearsayDAOBean.getLocationDAO().save(regionLocation);
+
+                                                    Region newRegion = new Region(RegionType.EXON);
+                                                    newRegion.setId(hearsayDAOBean.getRegionDAO().save(newRegion));
+                                                    newRegion.setAlignment(alignment);
+
+                                                    Location newTranscriptLocation = new Location(transcriptStart,
+                                                            alignment.getProteinLocation().getStop() + 1);
+                                                    newTranscriptLocation.setId(hearsayDAOBean.getLocationDAO().save(
+                                                            newTranscriptLocation));
+                                                    newRegion.setTranscriptLocation(newTranscriptLocation);
+
+                                                    // is this off by one?
+                                                    Location newRegionLocation = new Location(regionLocation.getStart()
+                                                            - newTranscriptLocation.diff() - 1,
+                                                            regionLocation.getStart() - 1);
+                                                    newRegionLocation.setId(hearsayDAOBean.getLocationDAO().save(
+                                                            newRegionLocation));
+                                                    newRegion.setRegionLocation(newRegionLocation);
+                                                    hearsayDAOBean.getRegionDAO().save(newRegion);
+
+                                                    utrRegionList.add(newRegion);
+                                                }
+
+                                            }
+
+                                            if (strandType.equals(StrandType.PLUS)) {
+
+                                                if (transcriptRange.containsInteger(proteinLocation.getStart())) {
+
+                                                    transcriptLocation.setStop(proteinLocation.getStop() - 1);
+                                                    hearsayDAOBean.getLocationDAO().save(transcriptLocation);
+
+                                                    regionLocation.setStop(regionStart + transcriptLocation.diff());
+                                                    hearsayDAOBean.getLocationDAO().save(regionLocation);
+
+                                                    Region newRegion = new Region(RegionType.EXON);
+                                                    newRegion.setId(hearsayDAOBean.getRegionDAO().save(newRegion));
+                                                    newRegion.setAlignment(alignment);
+
+                                                    Location newTranscriptLocation = new Location(alignment
+                                                            .getProteinLocation().getStart(), transcriptStop);
+                                                    newTranscriptLocation.setId(hearsayDAOBean.getLocationDAO().save(
+                                                            newTranscriptLocation));
+                                                    newRegion.setTranscriptLocation(newTranscriptLocation);
+
+                                                    Location newRegionLocation = new Location(
+                                                            regionLocation.getStop() + 1, regionLocation.getStop() + 1
+                                                                    + newTranscriptLocation.diff());
+                                                    newRegionLocation.setId(hearsayDAOBean.getLocationDAO().save(
+                                                            newRegionLocation));
+                                                    newRegion.setRegionLocation(newRegionLocation);
+                                                    hearsayDAOBean.getRegionDAO().save(newRegion);
+
+                                                    utrRegionList.add(newRegion);
+
+                                                }
+
+                                                if (transcriptRange.containsInteger(proteinLocation.getStop())) {
+
+                                                    transcriptLocation.setStop(proteinLocation.getStop());
+                                                    hearsayDAOBean.getLocationDAO().save(transcriptLocation);
+
+                                                    regionLocation.setStop(regionStart + transcriptLocation.diff());
+                                                    hearsayDAOBean.getLocationDAO().save(regionLocation);
+
+                                                    Region newRegion = new Region(RegionType.EXON);
+                                                    newRegion.setId(hearsayDAOBean.getRegionDAO().save(newRegion));
+                                                    newRegion.setAlignment(alignment);
+
+                                                    Location newTranscriptLocation = new Location(
+                                                            proteinLocation.getStop() + 1, transcriptStop);
+                                                    newTranscriptLocation.setId(hearsayDAOBean.getLocationDAO().save(
+                                                            newTranscriptLocation));
+                                                    newRegion.setTranscriptLocation(newTranscriptLocation);
+
+                                                    Location newRegionLocation = new Location(regionStop
+                                                            - newTranscriptLocation.diff(), regionStop);
+                                                    newRegionLocation.setId(hearsayDAOBean.getLocationDAO().save(
+                                                            newRegionLocation));
+                                                    newRegion.setRegionLocation(newRegionLocation);
+                                                    hearsayDAOBean.getRegionDAO().save(newRegion);
+
+                                                    utrRegionList.add(newRegion);
+
+                                                }
+
+                                            }
+
                                         }
 
-                                        Location regionLocation = region.getRegionLocation();
-                                        int regionStart = regionLocation.getStart();
-                                        int regionStop = regionLocation.getStop();
+                                        regionList.addAll(utrRegionList);
 
-                                        Location transcriptLocation = region.getTranscriptLocation();
-                                        IntRange transcriptRange = transcriptLocation.toRange();
+                                        Collections.sort(regionList, new Comparator<Region>() {
+                                            @Override
+                                            public int compare(Region o1, Region o2) {
+                                                return Integer.compare(o1.getRegionLocation().getStart(), o2
+                                                        .getRegionLocation().getStart());
+                                            }
+                                        });
 
-                                        int transcriptStart = transcriptLocation.getStart();
-                                        int transcriptStop = transcriptLocation.getStop();
+                                        for (Region region : regionList) {
+                                            Location transcriptLocation = region.getTranscriptLocation();
+                                            if (transcriptLocation == null) {
+                                                continue;
+                                            }
 
-                                        if (strandType.equals(StrandType.MINUS)
-                                                && transcriptRange.containsInteger(alignment.getProteinLocation()
-                                                        .getStart())) {
+                                            if (strandType.equals(StrandType.PLUS)
+                                                    && transcriptLocation.getStop() < proteinLocation.getStart()) {
+                                                region.setRegionType(RegionType.UTR5);
+                                            }
 
-                                            transcriptLocation.setStop(alignment.getProteinLocation().getStart());
-                                            hearsayDAOBean.getLocationDAO().save(transcriptLocation);
+                                            if (strandType.equals(StrandType.PLUS)
+                                                    && transcriptLocation.getStop() > proteinLocation.getStop()) {
+                                                region.setRegionType(RegionType.UTR3);
+                                            }
 
-                                            int diff = transcriptStart - transcriptLocation.getStop();
-                                            regionLocation.setStop(regionLocation.getStart() + diff);
-                                            hearsayDAOBean.getLocationDAO().save(regionLocation);
+                                            if (strandType.equals(StrandType.MINUS)
+                                                    && transcriptLocation.getStop() < proteinLocation.getStart()) {
+                                                region.setRegionType(RegionType.UTR5);
+                                            }
 
-                                            Region newRegion = new Region(RegionType.UTR5);
-                                            newRegion.setAlignment(alignment);
+                                            if (strandType.equals(StrandType.MINUS)
+                                                    && transcriptLocation.getStop() > proteinLocation.getStop()) {
+                                                region.setRegionType(RegionType.UTR3);
+                                            }
 
-                                            Location newTranscriptLocation = new Location(alignment
-                                                    .getProteinLocation().getStart() - 1, transcriptStop);
-                                            newTranscriptLocation.setId(hearsayDAOBean.getLocationDAO().save(
-                                                    newTranscriptLocation));
-                                            newRegion.setTranscriptLocation(newTranscriptLocation);
-
-                                            Location newRegionLocation = new Location(regionLocation.getStop() + 1,
-                                                    regionLocation.getStop() + 1
-                                                            + newRegion.getTranscriptLocation().diff());
-                                            newRegionLocation.setId(hearsayDAOBean.getLocationDAO().save(
-                                                    newRegionLocation));
-                                            newRegion.setRegionLocation(newRegionLocation);
-
-                                            newRegion.setId(hearsayDAOBean.getRegionDAO().save(newRegion));
-                                            utrRegionList.add(newRegion);
+                                            hearsayDAOBean.getRegionDAO().save(region);
                                         }
 
-                                        if (strandType.equals(StrandType.MINUS)
-                                                && transcriptRange.containsInteger(alignment.getProteinLocation()
-                                                        .getStop())) {
+                                        // for (Region region : regionList) {
+                                        // Location regionLocation = region.getRegionLocation();
+                                        // Location transcriptLocation = region.getTranscriptLocation();
+                                        // if (transcriptLocation == null) {
+                                        // logger.info("{}, {}", region.toString(), regionLocation.toString());
+                                        // continue;
+                                        // }
+                                        // logger.info("{}, {}, {}", region.toString(), regionLocation.toString(),
+                                        // transcriptLocation.toString());
+                                        // }
 
-                                            transcriptLocation.setStart(alignment.getProteinLocation().getStop());
-                                            hearsayDAOBean.getLocationDAO().save(transcriptLocation);
+                                        List<Region> intronRegionList = new ArrayList<Region>();
 
-                                            int diff = alignment.getProteinLocation().getStop() - transcriptStop;
-                                            regionLocation.setStart(regionLocation.getStop() - diff);
-                                            hearsayDAOBean.getLocationDAO().save(regionLocation);
+                                        // adding intron regions
+                                        Region previousRegion = null;
+                                        for (Region currentRegion : regionList) {
+                                            if (previousRegion == null) {
+                                                previousRegion = currentRegion;
+                                                continue;
+                                            }
 
-                                            Region newRegion = new Region(RegionType.UTR3);
-                                            newRegion.setAlignment(alignment);
+                                            if (previousRegion.getRegionLocation().getStop()
+                                                    .equals(currentRegion.getRegionLocation().getStart() - 1)) {
+                                                previousRegion = currentRegion;
+                                                continue;
+                                            }
 
-                                            Location newTranscriptLocation = new Location(transcriptStart, alignment
-                                                    .getProteinLocation().getStop() + 1);
-                                            newTranscriptLocation.setId(hearsayDAOBean.getLocationDAO().save(
-                                                    newTranscriptLocation));
-                                            newRegion.setTranscriptLocation(newTranscriptLocation);
-
-                                            Location newRegionLocation = new Location(regionLocation.getStart() - 2
-                                                    - newTranscriptLocation.diff(), regionLocation.getStart() - 1);
-                                            newRegionLocation.setId(hearsayDAOBean.getLocationDAO().save(
-                                                    newRegionLocation));
-                                            newRegion.setRegionLocation(newRegionLocation);
-
-                                            newRegion.setId(hearsayDAOBean.getRegionDAO().save(newRegion));
-                                            utrRegionList.add(newRegion);
-                                        }
-
-                                        if (strandType.equals(StrandType.PLUS)
-                                                && transcriptRange.containsInteger(alignment.getProteinLocation()
-                                                        .getStart())) {
-
-                                            transcriptLocation.setStart(alignment.getProteinLocation().getStart());
-                                            hearsayDAOBean.getLocationDAO().save(transcriptLocation);
-
-                                            regionLocation.setStart(regionStop - transcriptLocation.diff());
-                                            hearsayDAOBean.getLocationDAO().save(regionLocation);
-
-                                            Region newRegion = new Region(RegionType.UTR5);
-                                            newRegion.setAlignment(alignment);
-
-                                            Location newTranscriptLocation = new Location(transcriptStart, alignment
-                                                    .getProteinLocation().getStart() - 1);
-                                            newTranscriptLocation.setId(hearsayDAOBean.getLocationDAO().save(
-                                                    newTranscriptLocation));
-                                            newRegion.setTranscriptLocation(newTranscriptLocation);
-
-                                            Location newRegionLocation = new Location(regionLocation.getStart()
-                                                    - newTranscriptLocation.diff(), regionLocation.getStart() - 1);
-                                            newRegionLocation.setId(hearsayDAOBean.getLocationDAO().save(
-                                                    newRegionLocation));
-                                            newRegion.setRegionLocation(newRegionLocation);
-
-                                            newRegion.setId(hearsayDAOBean.getRegionDAO().save(newRegion));
-                                            utrRegionList.add(newRegion);
-
-                                        }
-
-                                        if (strandType.equals(StrandType.PLUS)
-                                                && transcriptRange.containsInteger(alignment.getProteinLocation()
-                                                        .getStop())) {
-
-                                            transcriptLocation.setStop(alignment.getProteinLocation().getStop());
-                                            hearsayDAOBean.getLocationDAO().save(transcriptLocation);
-
-                                            regionLocation.setStop(regionStart + transcriptLocation.diff());
-                                            hearsayDAOBean.getLocationDAO().save(regionLocation);
-
-                                            Region newRegion = new Region(RegionType.UTR3);
-                                            newRegion.setAlignment(alignment);
-
-                                            Location newTranscriptLocation = new Location(alignment
-                                                    .getProteinLocation().getStop() + 1, transcriptStop);
-                                            newTranscriptLocation.setId(hearsayDAOBean.getLocationDAO().save(
-                                                    newTranscriptLocation));
-                                            newRegion.setTranscriptLocation(newTranscriptLocation);
-
-                                            Location newRegionLocation = new Location(regionStop
-                                                    - newTranscriptLocation.diff(), regionStop);
-                                            newRegionLocation.setId(hearsayDAOBean.getLocationDAO().save(
-                                                    newRegionLocation));
-                                            newRegion.setRegionLocation(newRegionLocation);
-
-                                            newRegion.setId(hearsayDAOBean.getRegionDAO().save(newRegion));
-                                            utrRegionList.add(newRegion);
-
-                                        }
-
-                                    }
-
-                                    alignment.getRegions().addAll(utrRegionList);
-                                    hearsayDAOBean.getAlignmentDAO().save(alignment);
-
-                                    for (Region region : alignment.getRegions()) {
-
-                                        if (strandType.equals(StrandType.PLUS)
-                                                && region.getTranscriptLocation().getStop() < alignment
-                                                        .getProteinLocation().getStart()) {
-                                            region.setRegionType(RegionType.UTR5);
-                                        }
-
-                                        if (strandType.equals(StrandType.PLUS)
-                                                && region.getTranscriptLocation().getStop() > alignment
-                                                        .getProteinLocation().getStop()) {
-                                            region.setRegionType(RegionType.UTR3);
-                                        }
-
-                                        if (strandType.equals(StrandType.MINUS)
-                                                && region.getTranscriptLocation().getStop() < alignment
-                                                        .getProteinLocation().getStart()) {
-                                            region.setRegionType(RegionType.UTR5);
-                                        }
-
-                                        if (strandType.equals(StrandType.MINUS)
-                                                && region.getTranscriptLocation().getStop() > alignment
-                                                        .getProteinLocation().getStop()) {
-                                            region.setRegionType(RegionType.UTR3);
-                                        }
-
-                                        hearsayDAOBean.getRegionDAO().save(region);
-                                    }
-
-                                    logger.info("Adding INTRONs");
-
-                                    // adding intron regions
-                                    List<Region> intronRegionList = new ArrayList<Region>();
-                                    regionIter = alignment.getRegions().iterator();
-                                    Region previousRegion = null;
-                                    while (regionIter.hasNext()) {
-                                        Region currentRegion = regionIter.next();
-                                        if (previousRegion == null) {
-                                            previousRegion = currentRegion;
-                                            continue;
-                                        }
-
-                                        if (!currentRegion.getRegionLocation().getStart()
-                                                .equals(previousRegion.getRegionLocation().getStop() - 1)) {
                                             Region region = new Region(RegionType.INTRON);
+                                            region.setId(hearsayDAOBean.getRegionDAO().save(region));
                                             region.setAlignment(alignment);
+
                                             Location regionLocation = new Location(previousRegion.getRegionLocation()
                                                     .getStop() + 1, currentRegion.getRegionLocation().getStart() - 1);
                                             regionLocation.setId(hearsayDAOBean.getLocationDAO().save(regionLocation));
                                             region.setRegionLocation(regionLocation);
-                                            region.setId(hearsayDAOBean.getRegionDAO().save(region));
+                                            hearsayDAOBean.getRegionDAO().save(region);
                                             intronRegionList.add(region);
+
+                                            previousRegion = currentRegion;
                                         }
 
-                                        previousRegion = currentRegion;
-                                    }
+                                        regionList.addAll(intronRegionList);
 
-                                    alignment.getRegions().addAll(intronRegionList);
-                                    hearsayDAOBean.getAlignmentDAO().save(alignment);
+                                        Collections.sort(regionList, new Comparator<Region>() {
+                                            @Override
+                                            public int compare(Region o1, Region o2) {
+                                                return Integer.compare(o1.getRegionLocation().getStart(), o2
+                                                        .getRegionLocation().getStart());
+                                            }
+                                        });
+
+                                        for (Region region : regionList) {
+                                            Location regionLocation = region.getRegionLocation();
+                                            Location transcriptLocation = region.getTranscriptLocation();
+                                            if (transcriptLocation == null) {
+                                                logger.debug("{}, {}", region.toString(), regionLocation.toString());
+                                                continue;
+                                            }
+                                            logger.debug("{}, {}, {}", region.toString(), regionLocation.toString(),
+                                                    transcriptLocation.toString());
+                                        }
+
+                                        alignment.setRegions(regionList);
+
+                                        hearsayDAOBean.getAlignmentDAO().save(alignment);
+
+                                    }
 
                                 }
 
                             }
 
                         }
-
                     }
 
                 }
