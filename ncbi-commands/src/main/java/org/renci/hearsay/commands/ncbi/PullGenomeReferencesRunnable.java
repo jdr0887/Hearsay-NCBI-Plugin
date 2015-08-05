@@ -10,6 +10,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Scanner;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.renci.hearsay.commands.ncbi.util.FTPUtil;
 import org.renci.hearsay.dao.HearsayDAOBean;
 import org.renci.hearsay.dao.HearsayDAOException;
@@ -77,7 +78,7 @@ public class PullGenomeReferencesRunnable implements Runnable {
                     List<GenomeReference> potentiallyFoundGenomeReferenceList = hearsayDAOBean.getGenomeReferenceDAO()
                             .findByExample(exampleGenomeReference);
                     logger.info(exampleGenomeReference.toString());
-                    if (potentiallyFoundGenomeReferenceList != null && !potentiallyFoundGenomeReferenceList.isEmpty()) {
+                    if (CollectionUtils.isNotEmpty(potentiallyFoundGenomeReferenceList)) {
                         logger.info("GenomeReference is already persisted");
                         continue;
                     }
