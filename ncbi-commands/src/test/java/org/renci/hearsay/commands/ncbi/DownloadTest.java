@@ -1,71 +1,68 @@
 package org.renci.hearsay.commands.ncbi;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.net.ftp.FTP;
-import org.apache.commons.net.ftp.FTPClient;
-import org.apache.commons.net.ftp.FTPFile;
-import org.apache.commons.net.ftp.FTPFileFilter;
-import org.apache.commons.net.ftp.FTPReply;
 import org.junit.Test;
+import org.renci.gbff.GBFFFilter;
+import org.renci.gbff.GBFFManager;
+import org.renci.gbff.filter.GBFFAndFilter;
+import org.renci.gbff.filter.GBFFFeatureSourceOrganismNameFilter;
+import org.renci.gbff.filter.GBFFFeatureTypeNameFilter;
+import org.renci.gbff.filter.GBFFSequenceAccessionPrefixFilter;
+import org.renci.gbff.filter.GBFFSourceOrganismNameFilter;
+import org.renci.gbff.model.Sequence;
+import org.renci.hearsay.commands.ncbi.util.FTPUtil;
 
 public class DownloadTest {
 
     @Test
-    public void download() {
-        FTPClient ftpClient = new FTPClient();
-        try {
-            ftpClient.connect("ftp.ncbi.nlm.nih.gov");
+    public void humanDownload() {
 
-            ftpClient.login("anonymous", "anonymous");
-            ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
-            ftpClient.enterLocalPassiveMode();
+        GBFFManager gbffMgr = GBFFManager.getInstance(1, true);
 
-            int reply = ftpClient.getReplyCode();
-            if (!FTPReply.isPositiveCompletion(reply)) {
-                ftpClient.disconnect();
-                return;
-            }
+        List<GBFFFilter> filters = Arrays.asList(new GBFFFilter[] {
+                new GBFFSequenceAccessionPrefixFilter(Arrays.asList(new String[] { "NM_", "NR_" })),
+                new GBFFSourceOrganismNameFilter("Homo sapiens"),
+                new GBFFFeatureSourceOrganismNameFilter("Homo sapiens"), new GBFFFeatureTypeNameFilter("CDS"),
+                new GBFFFeatureTypeNameFilter("source") });
 
-            List<FTPFile> ftpFileList = Arrays.asList(ftpClient.listFiles("/refseq/release/vertebrate_mammalian/",
-                    new FTPFileFilter() {
+        GBFFAndFilter gbffFilter = new GBFFAndFilter(filters);
 
-                        @Override
-                        public boolean accept(FTPFile ftpFile) {
-                            if (ftpFile != null && ftpFile.getName().endsWith("rna.gbff.gz")) {
-                                return true;
-                            }
-                            return false;
-                        }
-                    }));
-
-            for (FTPFile ftpFile : ftpFileList) {
-                File tmpFile = new File(System.getProperty("java.io.tmpdir", "/tmp"), ftpFile.getName());
-                try (OutputStream fos = new BufferedOutputStream(new FileOutputStream(tmpFile))) {
-                    ftpClient.retrieveFile(String.format("/refseq/release/vertebrate_mammalian/%s", ftpFile.getName()),
-                            fos);
-                    fos.flush();
-                }
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (ftpClient.isConnected()) {
-                    ftpClient.disconnect();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        List<File> fileList = FTPUtil.ncbiDownloadBySuffix("/refseq/H_sapiens/mRNA_Prot", "rna.gbff.gz");
+        
+        List<Sequence> sequenceList = new ArrayList<Sequence>();
+        for (File f : fileList) {
+            List<Sequence> tmpList = gbffMgr.deserialize(gbffFilter, f);
+            System.out.printf("sequences: %d, file: %s%n", tmpList.size(), f.getAbsolutePath());
+            sequenceList.addAll(tmpList);
         }
+        System.out.println(sequenceList.size());
+    }
 
+    @Test
+    public void vertebrateMammalianDownload() {
+
+        GBFFManager gbffMgr = GBFFManager.getInstance(8, true);
+
+        List<GBFFFilter> filters = Arrays.asList(new GBFFFilter[] {
+                new GBFFSequenceAccessionPrefixFilter(Arrays.asList(new String[] { "NM_", "NR_" })),
+                new GBFFSourceOrganismNameFilter("Homo sapiens"),
+                new GBFFFeatureSourceOrganismNameFilter("Homo sapiens"), new GBFFFeatureTypeNameFilter("CDS"),
+                new GBFFFeatureTypeNameFilter("source") });
+
+        GBFFAndFilter gbffFilter = new GBFFAndFilter(filters);
+        
+        List<File> fileList = FTPUtil.ncbiDownloadBySuffix("/refseq/release/vertebrate_mammalian", "rna.gbff.gz");
+        List<Sequence> sequenceList = new ArrayList<Sequence>();
+        for (File f : fileList) {
+            List<Sequence> tmpList = gbffMgr.deserialize(gbffFilter, f);
+            System.out.printf("sequences: %d, file: %s%n", tmpList.size(), f.getAbsolutePath());
+            sequenceList.addAll(tmpList);
+        }
+        System.out.println(sequenceList.size());
     }
 
 }
