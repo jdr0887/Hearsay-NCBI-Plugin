@@ -1,78 +1,25 @@
 package org.renci.hearsay.commands.ncbi;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.GZIPInputStream;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.math3.util.Pair;
 import org.junit.Test;
+import org.renci.gene2accession.G2AFilter;
+import org.renci.gene2accession.G2AParser;
+import org.renci.gene2accession.filter.G2AAndFilter;
+import org.renci.gene2accession.filter.G2AAssemblyFilter;
+import org.renci.gene2accession.filter.G2AGenomicNucleotideAccessionVersionPrefixFilter;
+import org.renci.gene2accession.filter.G2AProteinAccessionVersionPrefixFilter;
+import org.renci.gene2accession.filter.G2ARNANucleotideAccessionVersionPrefixFilter;
+import org.renci.gene2accession.filter.G2ATaxonIdFilter;
+import org.renci.gene2accession.model.Record;
 import org.renci.hearsay.commands.ncbi.util.FTPUtil;
-import org.renci.hearsay.dao.model.Location;
-import org.renci.hearsay.dao.model.Region;
-import org.renci.hearsay.dao.model.StrandType;
 
 public class Scratch {
-
-    @Test
-    public void asdf() {
-
-        LinkedList<String> alignmentsLines = new LinkedList<String>();
-
-        File alignmentsFile = FTPUtil.ncbiDownload("/refseq/H_sapiens/alignments",
-                "GCF_000001405.28_knownrefseq_alignments.gff3");
-        try (FileInputStream fis = new FileInputStream(alignmentsFile);
-                InputStreamReader isr = new InputStreamReader(fis);
-                BufferedReader br = new BufferedReader(isr)) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                alignmentsLines.add(line);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        for (String line : alignmentsLines) {
-
-            if (line.startsWith("#")) {
-                continue;
-            }
-
-            // NT_187633.1 RefSeq cDNA_match 278295 278486 192 - . ID=aln45579;Target=NM_000853.3 1 192
-            // +;gap_count=0;identity=1;idty=1;num_ident=1093;num_mismatch=0;pct_coverage=100;pct_identity_gap=100;pct_identity_ungap=100;score=192
-            String[] columns = line.split("\t");
-            String genomicAccession = columns[0];
-            String genomicStart = columns[3];
-            String genomicStop = columns[4];
-            String strand = columns[6];
-            String attributes = columns[8];
-
-            if (!genomicAccession.equals("NC_000019.10")) {
-                continue;
-            }
-            
-            if (attributes.contains("NM_130786.3")) {
-                System.out.println(line);
-                String[] attributeSplit = attributes.split(";");
-                String[] targetSplit = attributeSplit[1].split(" ");
-                Integer start = Integer.valueOf(targetSplit[1]);
-                Integer stop = Integer.valueOf(targetSplit[2]);
-                System.out.println(String.format("%s:%s", start.toString(), stop.toString()));
-            }
-            
-        }
-
-    }
 
     @Test
     public void test() {
@@ -94,83 +41,20 @@ public class Scratch {
     }
 
     @Test
-    public void testDownload() {
+    public void testGene2RefSeqFilters() {
+
         File genes2RefSeqFile = FTPUtil.ncbiDownload("/gene/DATA", "gene2refseq.gz");
-        Map<String, Pair<Integer, Integer>> genes2RefSeqMap = new HashMap<String, Pair<Integer, Integer>>();
-        // #Format: tax_id GeneID status RNA_nucleotide_accession.version RNA_nucleotide_gi protein_accession.version
-        // protein_gi genomic_nucleotide_accession.version genomic_nucleotide_gi start_position_on_the_genomic_accession
-        // end_position_on_the_genomic_accession orientation assembly mature_peptide_accession.version mature_peptide_gi
-        // Symbol
-
-        try (FileInputStream fis = new FileInputStream(genes2RefSeqFile);
-                GZIPInputStream gis = new GZIPInputStream(fis);
-                InputStreamReader isr = new InputStreamReader(gis);
-                BufferedReader br = new BufferedReader(isr)) {
-            String line;
-            while ((line = br.readLine()) != null) {
-
-                if (line.startsWith("#")) {
-                    continue;
-                }
-
-                Scanner scanner = new Scanner(line).useDelimiter("\t");
-                // String[] split = line.split("\t");
-
-                // tax_id
-                String taxId = scanner.next();
-                // protein_gi
-                scanner.next();
-                // genomic_nucleotide_accession.version
-                scanner.next();
-                // GeneID
-                scanner.next();
-                // status
-                scanner.next();
-                // RNA_nucleotide_accession.version
-                String rnaNucleotideAccession = scanner.next();
-                // RNA_nucleotide_gi
-                scanner.next();
-                // protein_accession.version
-                scanner.next();
-                // genomic_nucleotide_gi
-                scanner.next();
-                // start_position_on_the_genomic_accession
-                String genomicStart = scanner.next();
-                // end_position_on_the_genomic_accession
-                String genomicEnd = scanner.next();
-                // orientation
-                scanner.next();
-                // assembly mature_peptide_accession.version mature_peptide_gi Symbol
-                String assembly = scanner.next();
-                // mature_peptide_accession.version
-                scanner.next();
-                // mature_peptide_gi
-                scanner.next();
-                // Symbol
-                scanner.next();
-
-                // only want human
-                if (!"9606".equals(taxId)) {
-                    continue;
-                }
-
-                if (!assembly.contains("GRCh38.p2")) {
-                    continue;
-                }
-
-                if (!assembly.contains("Primary Assembly")) {
-                    continue;
-                }
-
-                if (!genes2RefSeqMap.containsKey(rnaNucleotideAccession)) {
-                    genes2RefSeqMap.put(rnaNucleotideAccession,
-                            new Pair<Integer, Integer>(Integer.valueOf(genomicStart), Integer.valueOf(genomicEnd)));
-                }
-                scanner.close();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        G2AParser gene2AccessionParser = G2AParser.getInstance(8);
+        List<G2AFilter> filters = Arrays.asList(new G2AFilter[] {
+                new G2ATaxonIdFilter(9606),
+                // new G2AAssemblyFilter("Reference.*(Primary Assembly|ALT_REF_LOCI.*)"),
+                new G2AAssemblyFilter("Reference.*Primary Assembly"),
+                new G2AProteinAccessionVersionPrefixFilter(Arrays.asList(new String[] { "NP_" })),
+                new G2AGenomicNucleotideAccessionVersionPrefixFilter(Arrays.asList(new String[] { "NC_" })),
+                new G2ARNANucleotideAccessionVersionPrefixFilter(Arrays.asList(new String[] { "NM_", "NR_" })) });
+        G2AAndFilter andFilter = new G2AAndFilter(filters);
+        List<Record> recordList = gene2AccessionParser.parse(andFilter, genes2RefSeqFile);
+        System.out.println(recordList.size());
 
     }
 }
