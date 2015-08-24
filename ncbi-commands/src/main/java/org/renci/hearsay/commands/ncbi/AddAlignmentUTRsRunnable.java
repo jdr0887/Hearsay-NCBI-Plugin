@@ -8,9 +8,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.collections.CollectionUtils;
 import org.renci.hearsay.dao.HearsayDAOBean;
 import org.renci.hearsay.dao.model.Alignment;
-import org.renci.hearsay.dao.model.Gene;
-import org.renci.hearsay.dao.model.ReferenceSequence;
-import org.renci.hearsay.dao.model.StrandType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,45 +29,20 @@ public class AddAlignmentUTRsRunnable implements Runnable {
 
             ExecutorService es = Executors.newFixedThreadPool(4);
 
-            List<Gene> geneList = hearsayDAOBean.getGeneDAO().findAll();
-            if (CollectionUtils.isNotEmpty(geneList)) {
-                for (Gene gene : geneList) {
+            List<Alignment> alignmentList = hearsayDAOBean.getAlignmentDAO().findAll();
 
-                    logger.info(gene.toString());
+            if (CollectionUtils.isNotEmpty(alignmentList)) {
 
-                    List<ReferenceSequence> referenceSequenceList = hearsayDAOBean.getReferenceSequenceDAO()
-                            .findByGeneId(gene.getId());
+                logger.debug("alignmentList.size(): {}", alignmentList.size());
 
-                    if (CollectionUtils.isNotEmpty(referenceSequenceList)) {
+                for (Alignment alignment : alignmentList) {
 
-                        for (ReferenceSequence referenceSequence : referenceSequenceList) {
-
-                            final StrandType strandType = referenceSequence.getStrandType();
-
-                            logger.info(referenceSequence.toString());
-
-                            List<Alignment> alignmentList = hearsayDAOBean.getAlignmentDAO().findByReferenceSequenceId(
-                                    referenceSequence.getId());
-
-                            if (CollectionUtils.isNotEmpty(alignmentList)) {
-
-                                logger.debug("alignmentList.size(): {}", alignmentList.size());
-
-                                for (Alignment alignment : alignmentList) {
-
-                                    if (CollectionUtils.isNotEmpty(alignment.getRegions())) {
-                                        es.submit(new AddUTRRunnable(hearsayDAOBean, alignment, strandType));
-                                    }
-
-                                }
-
-                            }
-
-                        }
-
+                    if (CollectionUtils.isNotEmpty(alignment.getRegions())) {
+                        es.submit(new AddUTRRunnable(hearsayDAOBean, alignment));
                     }
 
                 }
+
             }
 
             es.shutdown();
