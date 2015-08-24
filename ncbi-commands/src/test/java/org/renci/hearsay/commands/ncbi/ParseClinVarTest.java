@@ -18,9 +18,9 @@ public class ParseClinVarTest {
 
     @Test
     public void parseClinvRar() {
-        File clinvarDownload = FTPUtil.ncbiDownload("/pub/clinvar/xml", "ClinVarFullRelease_00-latest.xml.gz");
-        long start = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
         try {
+            File clinvarDownload = FTPUtil.ncbiDownload("/pub/clinvar/xml", "ClinVarFullRelease_00-latest.xml.gz");
             JAXBContext jc = JAXBContext.newInstance(ReleaseType.class);
             Unmarshaller u = jc.createUnmarshaller();
             ReleaseType releaseType = (ReleaseType) u.unmarshal(new GZIPInputStream(
@@ -36,8 +36,8 @@ public class ParseClinVarTest {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        long end = System.currentTimeMillis();
-        System.out.printf("duration: %d seconds", (end - start) / 1000);
+        long endTime = System.currentTimeMillis();
+        System.out.printf("duration: %d seconds", (endTime - startTime) / 1000);
 
     }
 
