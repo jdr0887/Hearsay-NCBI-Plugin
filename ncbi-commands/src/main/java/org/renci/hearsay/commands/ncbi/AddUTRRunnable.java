@@ -5,11 +5,13 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.math.IntRange;
 import org.renci.hearsay.dao.HearsayDAOBean;
 import org.renci.hearsay.dao.HearsayDAOException;
 import org.renci.hearsay.dao.model.Alignment;
 import org.renci.hearsay.dao.model.Location;
+import org.renci.hearsay.dao.model.ReferenceSequence;
 import org.renci.hearsay.dao.model.Region;
 import org.renci.hearsay.dao.model.RegionType;
 import org.renci.hearsay.dao.model.StrandType;
@@ -24,21 +26,27 @@ public class AddUTRRunnable implements Runnable {
 
     private Alignment alignment;
 
-    private StrandType strandType;
-
-    public AddUTRRunnable(HearsayDAOBean hearsayDAOBean, Alignment alignment, StrandType strandType) {
+    public AddUTRRunnable(HearsayDAOBean hearsayDAOBean, Alignment alignment) {
         super();
         this.hearsayDAOBean = hearsayDAOBean;
         this.alignment = alignment;
-        this.strandType = strandType;
     }
 
     @Override
     public void run() {
         logger.debug("ENTERING run()");
-        List<Region> regionList = alignment.getRegions();
 
         try {
+            
+            List<Region> regionList = alignment.getRegions();
+            List<ReferenceSequence> referenceSequenceList = alignment.getReferenceSequences();
+
+            if (CollectionUtils.isEmpty(referenceSequenceList)) {
+                logger.error("Could not find ReferenceSequence for Alignment: {}", alignment.toString());
+                return;
+            }
+
+            StrandType strandType = referenceSequenceList.get(0).getStrandType();
             List<Region> utrRegionList = new ArrayList<Region>();
 
             final Location proteinLocation = alignment.getProteinLocation();
