@@ -20,9 +20,9 @@ public class PersistFeaturesRunnable implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(PersistFeaturesRunnable.class);
 
-    private final Pattern featureLocationPattern = Pattern.compile("^(join|order)\\((.+)\\)$");
+    private static final Pattern featureLocationPattern = Pattern.compile("^(join|order)\\((.+)\\)$");
 
-    private final List<String> inclusionPatterns = Arrays.asList(new String[] { "misc_feature", "polyA_signal",
+    private static final List<String> inclusionPatterns = Arrays.asList(new String[] { "misc_feature", "polyA_signal",
             "polyA_site", "transit_peptide", "mat_peptide", "sig_peptide", "unsure", "stem_loop", "protein_bind",
             "repeat_region", "prim_transcript", "proprotein", "LTR", "TATA_signal", "primer_bind", "terminator",
             "misc_difference", "misc_binding", "RBS", "misc_signal", "J_segment", "C_region", "conflict", "promoter",
