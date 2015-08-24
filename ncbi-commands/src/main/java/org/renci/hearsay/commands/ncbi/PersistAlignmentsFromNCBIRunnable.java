@@ -1,10 +1,5 @@
 package org.renci.hearsay.commands.ncbi;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -17,7 +12,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.renci.gbff.model.Feature;
 import org.renci.gbff.model.Sequence;
-import org.renci.hearsay.commands.ncbi.util.FTPUtil;
 import org.renci.hearsay.dao.HearsayDAOBean;
 import org.renci.hearsay.dao.model.Alignment;
 import org.renci.hearsay.dao.model.Identifier;
@@ -33,24 +27,6 @@ public class PersistAlignmentsFromNCBIRunnable implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(PersistAlignmentsFromNCBIRunnable.class);
 
-    private static final LinkedList<String> alignmentsLines = new LinkedList<String>();
-
-    static {
-        File alignmentsFile = FTPUtil.ncbiDownload("/refseq/H_sapiens/alignments",
-                "GCF_000001405.28_knownrefseq_alignments.gff3");
-        try (FileInputStream fis = new FileInputStream(alignmentsFile);
-                InputStreamReader isr = new InputStreamReader(fis);
-                BufferedReader br = new BufferedReader(isr)) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                alignmentsLines.add(line);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        // alignmentsFile.delete();
-    }
-
     private static final Pattern featureLocationPattern = Pattern.compile("^(join|order)\\((.+)\\)$");
 
     private final HearsayDAOBean hearsayDAOBean;
@@ -61,13 +37,17 @@ public class PersistAlignmentsFromNCBIRunnable implements Runnable {
 
     private final Feature firstCDSFeature;
 
+    private final LinkedList<String> alignmentsLines;
+
     public PersistAlignmentsFromNCBIRunnable(final HearsayDAOBean hearsayDAOBean, final Sequence sequence,
-            final List<ReferenceSequence> referenceSequences, final Feature firstCDSFeature) {
+            final List<ReferenceSequence> referenceSequences, final Feature firstCDSFeature,
+            final LinkedList<String> alignmentsLines) {
         super();
         this.hearsayDAOBean = hearsayDAOBean;
         this.sequence = sequence;
         this.referenceSequences = referenceSequences;
         this.firstCDSFeature = firstCDSFeature;
+        this.alignmentsLines = alignmentsLines;
     }
 
     @Override
@@ -130,7 +110,6 @@ public class PersistAlignmentsFromNCBIRunnable implements Runnable {
             Location proteinLocation = new Location(firstCDSFeatureLocationStart, firstCDSFeatureLocationStop);
             proteinLocation.setId(hearsayDAOBean.getLocationDAO().save(proteinLocation));
             alignment.setProteinLocation(proteinLocation);
-            hearsayDAOBean.getAlignmentDAO().save(alignment);
 
             // add exons to alignment
             for (Feature feature : sequence.getFeatures()) {
@@ -241,7 +220,6 @@ public class PersistAlignmentsFromNCBIRunnable implements Runnable {
                     }
 
                 }
-                hearsayDAOBean.getAlignmentDAO().save(alignment);
             }
 
         } catch (Exception e) {
