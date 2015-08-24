@@ -79,7 +79,7 @@ public class PersistCanonicalAlleleRunnable implements Runnable {
                 Identifier identifier = new Identifier("www.ncbi.nlm.nih.gov/clinvar/variation", mst.getID().toString());
                 identifier.setId(hearsayDAOBean.getIdentifierDAO().save(identifier));
                 logger.info(identifier.toString());
-                canonicalAllele.getRelatedIdentifiers().add(identifier);
+                canonicalAllele.getIdentifiers().add(identifier);
             }
 
             // for (MoleculeType mType : MoleculeType.values()) {
@@ -92,14 +92,6 @@ public class PersistCanonicalAlleleRunnable implements Runnable {
             for (Measure measure : mst.getMeasure()) {
 
                 List<AttributeSet> attributeSetList = measure.getAttributeSet();
-                
-                String dbSNPId = null;
-                for (XrefType xref : measure.getXRef()) {
-                    if ("dbSNP".equals(xref.getDB())) {
-                        dbSNPId = xref.getID();
-                        break;
-                    }
-                }
 
                 Set<SimpleAllele> simpleAlleleSet = new HashSet<SimpleAllele>();
                 for (AttributeSet attributeSet : attributeSetList) {
@@ -124,27 +116,29 @@ public class PersistCanonicalAlleleRunnable implements Runnable {
 
                 for (AttributeSet attributeSet : attributeSetList) {
                     Attribute attribute = attributeSet.getAttribute();
-                    if ("MolecularConsequence".equals(attribute.getType())) {
-                        String sequenceOntologyId = null;
-                        String refSeqId = null;
-                        for (XrefType xref : attributeSet.getXRef()) {
-                            if ("Sequence Ontology".equals(xref.getDB())) {
-                                sequenceOntologyId = xref.getID();
-                            }
-                            if ("RefSeq".equals(xref.getDB())) {
-                                refSeqId = xref.getID();
-                            }
-                        }
+                    if (!"MolecularConsequence".equals(attribute.getType())) {
+                        continue;
+                    }
 
-                        if (StringUtils.isNotEmpty(refSeqId) && StringUtils.isNotBlank(sequenceOntologyId)) {
-                            for (SimpleAllele sa : simpleAlleleSet) {
-                                if (sa.getName().startsWith(refSeqId.substring(0, refSeqId.indexOf(":")))) {
-                                    MolecularConsequence mc = new MolecularConsequence(
-                                            Integer.valueOf(sequenceOntologyId.replace("SO:", "")),
-                                            MolecularConsequenceType.PRIMARY);
-                                    mc.setId(hearsayDAOBean.getMolecularConsequenceDAO().save(mc));
-                                    sa.getMolecularConsequences().add(mc);
-                                }
+                    String sequenceOntologyId = null;
+                    String refSeqId = null;
+                    for (XrefType xref : attributeSet.getXRef()) {
+                        if ("Sequence Ontology".equals(xref.getDB())) {
+                            sequenceOntologyId = xref.getID();
+                        }
+                        if ("RefSeq".equals(xref.getDB())) {
+                            refSeqId = xref.getID();
+                        }
+                    }
+
+                    if (StringUtils.isNotEmpty(refSeqId) && StringUtils.isNotBlank(sequenceOntologyId)) {
+                        for (SimpleAllele sa : simpleAlleleSet) {
+                            if (sa.getName().startsWith(refSeqId.substring(0, refSeqId.indexOf(":")))) {
+                                MolecularConsequence mc = new MolecularConsequence(Integer.valueOf(sequenceOntologyId
+                                        .replace("SO:", "")), MolecularConsequenceType.PRIMARY);
+                                mc.setSimpleAllele(sa);
+                                mc.setId(hearsayDAOBean.getMolecularConsequenceDAO().save(mc));
+                                sa.getMolecularConsequences().add(mc);
                             }
                         }
                     }
@@ -213,6 +207,14 @@ public class PersistCanonicalAlleleRunnable implements Runnable {
                     }
                     referenceCoordinate.setId(hearsayDAOBean.getReferenceCoordinateDAO().save(referenceCoordinate));
 
+                    String dbSNPId = null;
+                    for (XrefType xref : measure.getXRef()) {
+                        if ("dbSNP".equals(xref.getDB())) {
+                            dbSNPId = xref.getID();
+                            break;
+                        }
+                    }
+
                     if (StringUtils.isNotEmpty(dbSNPId)) {
                         Identifier identifier = new Identifier("www.ncbi.nlm.nih.gov/snp", dbSNPId);
                         List<Identifier> possibleIdentifiers = hearsayDAOBean.getIdentifierDAO().findByExample(
@@ -231,7 +233,7 @@ public class PersistCanonicalAlleleRunnable implements Runnable {
                     hearsayDAOBean.getSimpleAlleleDAO().save(sa);
                 }
 
-                canonicalAllele.getRelatedSimpleAlleles().addAll(simpleAlleleSet);
+                canonicalAllele.getSimpleAlleles().addAll(simpleAlleleSet);
 
             }
             hearsayDAOBean.getCanonicalAlleleDAO().save(canonicalAllele);
