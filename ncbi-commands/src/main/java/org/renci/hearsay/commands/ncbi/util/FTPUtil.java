@@ -88,7 +88,13 @@ public class FTPUtil {
             }));
 
             for (FTPFile ftpFile : ftpFileList) {
-                File tmpFile = new File(System.getProperty("java.io.tmpdir", "/tmp"), ftpFile.getName());
+                File tmpFile = new File("/tmp", ftpFile.getName());
+                if (tmpFile.exists()) {
+                    ret.add(tmpFile);
+                    continue;
+                }
+
+                tmpFile = new File(System.getProperty("java.io.tmpdir", "/tmp"), ftpFile.getName());
                 // File tmpFile = new File("/tmp", ftpFile.getName());
                 if (!tmpFile.exists()) {
                     logger.info("downloading: {}", ftpFile.getName());
