@@ -8,6 +8,11 @@
       </action>
     </command>
     <command>
+      <action class="org.renci.hearsay.commands.ncbi.PullAction">
+        <property name="hearsayDAOBean" ref="hearsayDAOBean" />
+      </action>
+    </command>
+    <command>
       <action class="org.renci.hearsay.commands.ncbi.PullGenesAction">
         <property name="hearsayDAOBean" ref="hearsayDAOBean" />
       </action>
