@@ -39,8 +39,10 @@ public class PullReferenceSequencesRunnable implements Runnable {
             // 380MB gzipped
             File genes2RefSeqFile = FTPUtil.ncbiDownload("/gene/DATA", "gene2refseq.gz");
             G2AParser gene2AccessionParser = G2AParser.getInstance(8);
-            List<G2AFilter> filters = Arrays.asList(new G2AFilter[] { new G2ATaxonIdFilter(9606),
-                    new G2AAssemblyFilter("Reference.*(Primary Assembly|ALT_REF_LOCI.*)"),
+            List<G2AFilter> filters = Arrays.asList(new G2AFilter[] {
+                    new G2ATaxonIdFilter(9606),
+                    // new G2AAssemblyFilter("Reference.*(Primary Assembly|ALT_REF_LOCI.*)"),
+                    new G2AAssemblyFilter("Reference.*Primary Assembly"),
                     new G2AProteinAccessionVersionPrefixFilter(Arrays.asList(new String[] { "NP_" })),
                     new G2AGenomicNucleotideAccessionVersionPrefixFilter(Arrays.asList(new String[] { "NC_" })),
                     new G2ARNANucleotideAccessionVersionPrefixFilter(Arrays.asList(new String[] { "NM_", "NR_" })) });
