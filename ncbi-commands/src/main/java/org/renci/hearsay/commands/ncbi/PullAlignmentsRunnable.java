@@ -1,8 +1,13 @@
 package org.renci.hearsay.commands.ncbi;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -41,26 +46,41 @@ public class PullAlignmentsRunnable implements Runnable {
 
         try {
 
-            List<String> accessionPrefixList = Arrays.asList(new String[] { "NM_", "NR_" });
+            LinkedList<String> alignmentsLines = new LinkedList<String>();
 
+            File alignmentsFile = FTPUtil.ncbiDownload("/refseq/H_sapiens/alignments",
+                    "GCF_000001405.28_knownrefseq_alignments.gff3");
+            try (FileInputStream fis = new FileInputStream(alignmentsFile);
+                    InputStreamReader isr = new InputStreamReader(fis);
+                    BufferedReader br = new BufferedReader(isr)) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    alignmentsLines.add(line);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            alignmentsFile.delete();
+
+            // this will take a while
             GBFFManager gbffMgr = GBFFManager.getInstance(1, true);
 
             List<GBFFFilter> filters = Arrays.asList(new GBFFFilter[] {
-                    new GBFFSequenceAccessionPrefixFilter(accessionPrefixList),
+                    new GBFFSequenceAccessionPrefixFilter(Arrays.asList(new String[] { "NM_", "NR_" })),
                     new GBFFSourceOrganismNameFilter("Homo sapiens"),
                     new GBFFFeatureSourceOrganismNameFilter("Homo sapiens"), new GBFFFeatureTypeNameFilter("CDS"),
                     new GBFFFeatureTypeNameFilter("source") });
 
             GBFFAndFilter gbffFilter = new GBFFAndFilter(filters);
-            List<File> vertebrateMammalianFileList = FTPUtil.ncbiDownloadBySuffix(
-                    "/refseq/release/vertebrate_mammalian", "rna.gbff.gz");
 
-            for (File f : vertebrateMammalianFileList) {
+            List<File> fileList = FTPUtil.ncbiDownloadBySuffix("/refseq/H_sapiens/mRNA_Prot", "rna.gbff.gz");
+
+            ExecutorService es = Executors.newFixedThreadPool(8);
+            for (File f : fileList) {
                 List<Sequence> sequenceList = gbffMgr.deserialize(gbffFilter, f);
                 logger.debug("sequenceList.size(): {}", sequenceList.size());
                 if (CollectionUtils.isNotEmpty(sequenceList)) {
 
-                    ExecutorService es = Executors.newFixedThreadPool(16);
                     for (Sequence sequence : sequenceList) {
 
                         String refSeqVersionedAccession = sequence.getVersion().trim().contains(" ") ? sequence
@@ -108,15 +128,15 @@ public class PullAlignmentsRunnable implements Runnable {
                         // persistAlignmentsExecutorService.submit(new PersistAlignmentsFromUCSCRunnable(hearsayDAOBean,
                         // sequence));
                         es.submit(new PersistAlignmentsFromNCBIRunnable(hearsayDAOBean, sequence, potentialRefSeqs,
-                                firstCDSFeature));
+                                firstCDSFeature, alignmentsLines));
                         es.submit(new PersistFeaturesRunnable(hearsayDAOBean, sequence, potentialRefSeqs));
                     }
-                    es.shutdown();
-                    es.awaitTermination(2L, TimeUnit.HOURS);
 
                 }
                 // f.delete();
             }
+            es.shutdown();
+            es.awaitTermination(4L, TimeUnit.HOURS);
 
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
