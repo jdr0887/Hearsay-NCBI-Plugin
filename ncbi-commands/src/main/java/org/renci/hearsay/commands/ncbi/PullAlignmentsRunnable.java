@@ -13,7 +13,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.renci.gbff.GBFFFilter;
 import org.renci.gbff.GBFFManager;
 import org.renci.gbff.filter.GBFFAndFilter;

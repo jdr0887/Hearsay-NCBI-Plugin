@@ -5,8 +5,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.math.IntRange;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.Range;
 import org.renci.hearsay.dao.HearsayDAOBean;
 import org.renci.hearsay.dao.HearsayDAOException;
 import org.renci.hearsay.dao.model.Alignment;
@@ -37,7 +37,7 @@ public class AddUTRRunnable implements Runnable {
         logger.debug("ENTERING run()");
 
         try {
-            
+
             List<Region> regionList = alignment.getRegions();
             List<ReferenceSequence> referenceSequenceList = alignment.getReferenceSequences();
 
@@ -78,12 +78,12 @@ public class AddUTRRunnable implements Runnable {
                 }
                 int transcriptStart = transcriptLocation.getStart();
                 int transcriptStop = transcriptLocation.getStop();
-                IntRange transcriptRange = transcriptLocation.toRange();
+                Range<Integer> transcriptRange = transcriptLocation.toRange();
 
                 if (strandType.equals(StrandType.MINUS)) {
 
-                    if (transcriptRange.containsInteger(proteinLocation.getStart())
-                            && transcriptRange.containsInteger(proteinLocation.getStop())) {
+                    if (transcriptRange.contains(proteinLocation.getStart())
+                            && transcriptRange.contains(proteinLocation.getStop())) {
 
                         transcriptLocation.setStop(proteinLocation.getStart() - 1);
                         regionLocation.setStop(regionStop - transcriptLocation.diff());
@@ -93,12 +93,12 @@ public class AddUTRRunnable implements Runnable {
                                         + (proteinLocation.getStop() - proteinLocation.getStart()));
                         utrRegionList.add(newRegion);
 
-                        newRegion = createRegion(alignment, proteinLocation.getStop() + 1, transcriptStop, newRegion
-                                .getRegionLocation().getStop() + 1, newRegion.getRegionLocation().getStop() + 1
-                                + (transcriptStop - proteinLocation.getStop() - 1));
+                        newRegion = createRegion(alignment, proteinLocation.getStop() + 1, transcriptStop,
+                                newRegion.getRegionLocation().getStop() + 1, newRegion.getRegionLocation().getStop() + 1
+                                        + (transcriptStop - proteinLocation.getStop() - 1));
                         utrRegionList.add(newRegion);
 
-                    } else if (transcriptRange.containsInteger(proteinLocation.getStart())) {
+                    } else if (transcriptRange.contains(proteinLocation.getStart())) {
 
                         transcriptLocation.setStart(proteinLocation.getStart() - 1);
                         regionLocation.setStart(regionStop - transcriptLocation.diff());
@@ -108,7 +108,7 @@ public class AddUTRRunnable implements Runnable {
                                 regionLocation.getStart() - 1);
                         utrRegionList.add(newRegion);
 
-                    } else if (transcriptRange.containsInteger(proteinLocation.getStop())) {
+                    } else if (transcriptRange.contains(proteinLocation.getStop())) {
 
                         transcriptLocation.setStart(proteinLocation.getStop());
                         regionLocation.setStart(regionLocation.getStop() - transcriptLocation.diff());
@@ -124,8 +124,8 @@ public class AddUTRRunnable implements Runnable {
 
                 if (strandType.equals(StrandType.PLUS)) {
 
-                    if (transcriptRange.containsInteger(proteinLocation.getStart())
-                            && transcriptRange.containsInteger(proteinLocation.getStop())) {
+                    if (transcriptRange.contains(proteinLocation.getStart())
+                            && transcriptRange.contains(proteinLocation.getStop())) {
 
                         transcriptLocation.setStop(proteinLocation.getStart() - 1);
                         regionLocation.setStop(regionStart + transcriptLocation.diff());
@@ -135,22 +135,22 @@ public class AddUTRRunnable implements Runnable {
                                         + (proteinLocation.getStop() - proteinLocation.getStart()));
                         utrRegionList.add(newRegion);
 
-                        newRegion = createRegion(alignment, proteinLocation.getStop() + 1, transcriptStop, newRegion
-                                .getRegionLocation().getStop() + 1, newRegion.getRegionLocation().getStop() + 1
-                                + (transcriptStop - proteinLocation.getStop() - 1));
+                        newRegion = createRegion(alignment, proteinLocation.getStop() + 1, transcriptStop,
+                                newRegion.getRegionLocation().getStop() + 1, newRegion.getRegionLocation().getStop() + 1
+                                        + (transcriptStop - proteinLocation.getStop() - 1));
                         utrRegionList.add(newRegion);
 
-                    } else if (transcriptRange.containsInteger(proteinLocation.getStart())) {
+                    } else if (transcriptRange.contains(proteinLocation.getStart())) {
 
                         transcriptLocation.setStop(proteinLocation.getStart() - 1);
                         regionLocation.setStop(regionStart + transcriptLocation.diff());
 
                         Region newRegion = createRegion(alignment, proteinLocation.getStart(), transcriptStop,
-                                regionLocation.getStop() + 1, regionLocation.getStop() + 1
-                                        + (transcriptStop - proteinLocation.getStart()));
+                                regionLocation.getStop() + 1,
+                                regionLocation.getStop() + 1 + (transcriptStop - proteinLocation.getStart()));
                         utrRegionList.add(newRegion);
 
-                    } else if (transcriptRange.containsInteger(proteinLocation.getStop())) {
+                    } else if (transcriptRange.contains(proteinLocation.getStop())) {
 
                         transcriptLocation.setStop(proteinLocation.getStop() - 1);
                         regionLocation.setStop(regionStart + transcriptLocation.diff());
