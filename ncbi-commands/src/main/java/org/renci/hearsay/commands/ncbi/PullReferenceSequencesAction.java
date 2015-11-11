@@ -3,14 +3,14 @@ package org.renci.hearsay.commands.ncbi;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.console.AbstractAction;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Action;
 import org.renci.hearsay.dao.HearsayDAOBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Command(scope = "ncbi", name = "pull-reference-sequences", description = "Pull Reference Sequences")
-public class PullReferenceSequencesAction extends AbstractAction {
+public class PullReferenceSequencesAction implements Action {
 
     private final Logger logger = LoggerFactory.getLogger(PullReferenceSequencesAction.class);
 
@@ -21,8 +21,8 @@ public class PullReferenceSequencesAction extends AbstractAction {
     }
 
     @Override
-    public Object doExecute() {
-        logger.debug("ENTERING doExecute()");
+    public Object execute() {
+        logger.debug("ENTERING execute()");
         PullReferenceSequencesRunnable runnable = new PullReferenceSequencesRunnable();
         runnable.setHearsayDAOBean(hearsayDAOBean);
         ExecutorService es = Executors.newSingleThreadExecutor();

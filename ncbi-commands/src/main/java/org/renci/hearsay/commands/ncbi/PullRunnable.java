@@ -68,8 +68,8 @@ public class PullRunnable implements Runnable {
         }
         long endPersistGenesAndGenomeReferencesTime = System.currentTimeMillis();
 
-        long startPersistReferenceSequencesTime = System.currentTimeMillis();
         // persist reference sequences
+        long startPersistReferenceSequencesTime = System.currentTimeMillis();
         try {
             ExecutorService es = Executors.newSingleThreadExecutor();
             PullReferenceSequencesRunnable pullReferenceSequencesRunnable = new PullReferenceSequencesRunnable();

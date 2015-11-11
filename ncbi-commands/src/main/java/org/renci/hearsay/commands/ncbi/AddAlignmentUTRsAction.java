@@ -3,14 +3,14 @@ package org.renci.hearsay.commands.ncbi;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.console.AbstractAction;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Action;
 import org.renci.hearsay.dao.HearsayDAOBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Command(scope = "ncbi", name = "add-alignment-utrs", description = "Add Alignment UTRs")
-public class AddAlignmentUTRsAction extends AbstractAction {
+public class AddAlignmentUTRsAction implements Action {
 
     private final Logger logger = LoggerFactory.getLogger(AddAlignmentUTRsAction.class);
 
@@ -21,8 +21,8 @@ public class AddAlignmentUTRsAction extends AbstractAction {
     }
 
     @Override
-    public Object doExecute() {
-        logger.debug("ENTERING doExecute()");
+    public Object execute() {
+        logger.debug("ENTERING execute()");
         AddAlignmentUTRsRunnable runnable = new AddAlignmentUTRsRunnable();
         runnable.setHearsayDAOBean(hearsayDAOBean);
         ExecutorService es = Executors.newSingleThreadExecutor();
