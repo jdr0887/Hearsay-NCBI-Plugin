@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <parent>
     <groupId>org.renci.hearsay.plugin</groupId>
     <artifactId>ncbi</artifactId>
@@ -14,12 +15,12 @@
     <dependency>
       <groupId>org.renci.gene2accession</groupId>
       <artifactId>gene2accession-parser</artifactId>
-    </dependency>      
+    </dependency>
     <dependency>
       <groupId>org.renci.gff</groupId>
       <artifactId>gff3-parser</artifactId>
       <scope>provided</scope>
-    </dependency>      
+    </dependency>
     <dependency>
       <groupId>org.renci.clinvar</groupId>
       <artifactId>clinvar-public</artifactId>
@@ -28,13 +29,13 @@
     <dependency>
       <groupId>org.renci.lrg</groupId>
       <artifactId>lrg-public</artifactId>
-      <scope>provided</scope>      
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.renci.genbank</groupId>
       <artifactId>gbff-parser</artifactId>
-      <scope>provided</scope>      
-    </dependency>    
+      <scope>provided</scope>
+    </dependency>
     <dependency>
       <groupId>org.renci.hearsay.hearsay-dao</groupId>
       <artifactId>hearsay-dao-api</artifactId>
@@ -62,7 +63,7 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-collections4</artifactId>
       <scope>provided</scope>
-    </dependency>    
+    </dependency>
     <dependency>
       <groupId>org.apache.karaf.shell</groupId>
       <artifactId>org.apache.karaf.shell.console</artifactId>
@@ -101,12 +102,18 @@
   <build>
     <plugins>
       <plugin>
+        <groupId>org.apache.karaf.tooling</groupId>
+        <artifactId>karaf-services-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
         <configuration>
           <instructions>
-            <Export-Package>org.renci.hearsay.commands.ncbi*</Export-Package>
-            <Import-Package>org.apache.felix.service.command,org.apache.felix.gogo.commands,org.apache.karaf.shell.console,*</Import-Package>
+            <Private-Package>org.renci.hearsay.commands.ncbi*</Private-Package>
+            <Export-Package>org.renci.hearsay.commands.ncbi</Export-Package>
+            <Import-Package>*</Import-Package>
+            <Karaf-Commands>org.renci.hearsay.commands.ncbi</Karaf-Commands>
           </instructions>
         </configuration>
       </plugin>
