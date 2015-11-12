@@ -7,7 +7,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.renci.hearsay.dao.HearsayDAOBean;
+import org.renci.hearsay.dao.HearsayDAOBeanService;
 import org.renci.hearsay.dao.model.Chromosome;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,10 +16,11 @@ public class PullRunnable implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(PullRunnable.class);
 
-    private HearsayDAOBean hearsayDAOBean;
+    private HearsayDAOBeanService hearsayDAOBeanService;
 
-    public PullRunnable() {
+    public PullRunnable(HearsayDAOBeanService hearsayDAOBeanService) {
         super();
+        this.hearsayDAOBeanService = hearsayDAOBeanService;
     }
 
     @Override
@@ -38,9 +39,9 @@ public class PullRunnable implements Runnable {
             chromosomeList.add("MT");
 
             for (String chromosome : chromosomeList) {
-                List<Chromosome> foundChromosomeList = hearsayDAOBean.getChromosomeDAO().findByName(chromosome);
+                List<Chromosome> foundChromosomeList = hearsayDAOBeanService.getChromosomeDAO().findByName(chromosome);
                 if (CollectionUtils.isEmpty(foundChromosomeList)) {
-                    hearsayDAOBean.getChromosomeDAO().save(new Chromosome(chromosome));
+                    hearsayDAOBeanService.getChromosomeDAO().save(new Chromosome(chromosome));
                 }
             }
         } catch (Exception e) {
@@ -53,13 +54,12 @@ public class PullRunnable implements Runnable {
         try {
             ExecutorService es = Executors.newFixedThreadPool(2);
 
-            PullGenesRunnable pullGenesRunnable = new PullGenesRunnable();
-            pullGenesRunnable.setHearsayDAOBean(hearsayDAOBean);
+            PullGenesRunnable pullGenesRunnable = new PullGenesRunnable(hearsayDAOBeanService);
             es.submit(pullGenesRunnable);
 
-            PullGenomeReferencesRunnable pullGenomeReferencesRunnable = new PullGenomeReferencesRunnable();
-            pullGenomeReferencesRunnable.setHearsayDAOBean(hearsayDAOBean);
-            es.submit(pullGenesRunnable);
+            PullGenomeReferencesRunnable pullGenomeReferencesRunnable = new PullGenomeReferencesRunnable(
+                    hearsayDAOBeanService);
+            es.submit(pullGenomeReferencesRunnable);
 
             es.shutdown();
             es.awaitTermination(1L, TimeUnit.HOURS);
@@ -72,8 +72,8 @@ public class PullRunnable implements Runnable {
         long startPersistReferenceSequencesTime = System.currentTimeMillis();
         try {
             ExecutorService es = Executors.newSingleThreadExecutor();
-            PullReferenceSequencesRunnable pullReferenceSequencesRunnable = new PullReferenceSequencesRunnable();
-            pullReferenceSequencesRunnable.setHearsayDAOBean(hearsayDAOBean);
+            PullReferenceSequencesRunnable pullReferenceSequencesRunnable = new PullReferenceSequencesRunnable(
+                    hearsayDAOBeanService);
             es.submit(pullReferenceSequencesRunnable);
             es.shutdown();
             es.awaitTermination(2L, TimeUnit.HOURS);
@@ -86,8 +86,7 @@ public class PullRunnable implements Runnable {
         long startPersistAlignmentsTime = System.currentTimeMillis();
         try {
             ExecutorService es = Executors.newSingleThreadExecutor();
-            PullAlignmentsRunnable pullAlignmentsRunnable = new PullAlignmentsRunnable();
-            pullAlignmentsRunnable.setHearsayDAOBean(hearsayDAOBean);
+            PullAlignmentsRunnable pullAlignmentsRunnable = new PullAlignmentsRunnable(hearsayDAOBeanService);
             es.submit(pullAlignmentsRunnable);
             es.shutdown();
             es.awaitTermination(6L, TimeUnit.HOURS);
@@ -100,8 +99,7 @@ public class PullRunnable implements Runnable {
         long startPersistAlignmentUTRsTime = System.currentTimeMillis();
         try {
             ExecutorService es = Executors.newSingleThreadExecutor();
-            AddAlignmentUTRsRunnable addAlignmentUTRsRunnable = new AddAlignmentUTRsRunnable();
-            addAlignmentUTRsRunnable.setHearsayDAOBean(hearsayDAOBean);
+            AddAlignmentUTRsRunnable addAlignmentUTRsRunnable = new AddAlignmentUTRsRunnable(hearsayDAOBeanService);
             es.submit(addAlignmentUTRsRunnable);
             es.shutdown();
             es.awaitTermination(2L, TimeUnit.HOURS);
@@ -125,14 +123,6 @@ public class PullRunnable implements Runnable {
         logger.info("duration to persist Alignment UTRs: {} seconds",
                 (endPersistAlignmentUTRsTime - startPersistAlignmentUTRsTime) / 1000);
 
-    }
-
-    public HearsayDAOBean getHearsayDAOBean() {
-        return hearsayDAOBean;
-    }
-
-    public void setHearsayDAOBean(HearsayDAOBean hearsayDAOBean) {
-        this.hearsayDAOBean = hearsayDAOBean;
     }
 
 }

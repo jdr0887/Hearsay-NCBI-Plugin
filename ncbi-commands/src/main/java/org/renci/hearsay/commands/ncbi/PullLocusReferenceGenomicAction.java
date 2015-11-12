@@ -17,12 +17,9 @@ import javax.xml.bind.Unmarshaller;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPReply;
-import org.renci.hearsay.dao.HearsayDAOBean;
 import org.renci.lrg.Lrg;
 
 public class PullLocusReferenceGenomicAction {
-
-    private HearsayDAOBean hearsayDAOBean;
 
     public PullLocusReferenceGenomicAction() {
         super();
@@ -85,14 +82,6 @@ public class PullLocusReferenceGenomicAction {
         } catch (IOException e1) {
             e1.printStackTrace();
         }
-    }
-
-    public HearsayDAOBean getHearsayDAOBean() {
-        return hearsayDAOBean;
-    }
-
-    public void setHearsayDAOBean(HearsayDAOBean hearsayDAOBean) {
-        this.hearsayDAOBean = hearsayDAOBean;
     }
 
 }

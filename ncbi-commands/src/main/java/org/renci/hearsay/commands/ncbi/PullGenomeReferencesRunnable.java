@@ -12,7 +12,7 @@ import java.util.Scanner;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.renci.hearsay.commands.ncbi.util.FTPUtil;
-import org.renci.hearsay.dao.HearsayDAOBean;
+import org.renci.hearsay.dao.HearsayDAOBeanService;
 import org.renci.hearsay.dao.HearsayDAOException;
 import org.renci.hearsay.dao.model.GenomeReference;
 import org.renci.hearsay.dao.model.Identifier;
@@ -23,10 +23,11 @@ public class PullGenomeReferencesRunnable implements Runnable {
 
     private final Logger logger = LoggerFactory.getLogger(PullGenomeReferencesRunnable.class);
 
-    private HearsayDAOBean hearsayDAOBean;
+    private HearsayDAOBeanService hearsayDAOBeanService;
 
-    public PullGenomeReferencesRunnable() {
+    public PullGenomeReferencesRunnable(HearsayDAOBeanService hearsayDAOBeanService) {
         super();
+        this.hearsayDAOBeanService = hearsayDAOBeanService;
     }
 
     @Override
@@ -75,25 +76,26 @@ public class PullGenomeReferencesRunnable implements Runnable {
                     GenomeReference exampleGenomeReference = new GenomeReference();
                     exampleGenomeReference.setName(asmName);
 
-                    List<GenomeReference> potentiallyFoundGenomeReferenceList = hearsayDAOBean.getGenomeReferenceDAO()
-                            .findByExample(exampleGenomeReference);
+                    List<GenomeReference> potentiallyFoundGenomeReferenceList = hearsayDAOBeanService
+                            .getGenomeReferenceDAO().findByExample(exampleGenomeReference);
                     logger.info(exampleGenomeReference.toString());
                     if (CollectionUtils.isNotEmpty(potentiallyFoundGenomeReferenceList)) {
                         logger.info("GenomeReference is already persisted");
                         continue;
                     }
 
-                    exampleGenomeReference.setId(hearsayDAOBean.getGenomeReferenceDAO().save(exampleGenomeReference));
+                    exampleGenomeReference
+                            .setId(hearsayDAOBeanService.getGenomeReferenceDAO().save(exampleGenomeReference));
 
                     String id = getGenomeReferenceAssemblyId(assemblyAccession);
 
                     Identifier identifier = new Identifier("www.ncbi.nlm.nih.gov/assembly", id);
-                    identifier.setId(hearsayDAOBean.getIdentifierDAO().save(identifier));
+                    identifier.setId(hearsayDAOBeanService.getIdentifierDAO().save(identifier));
                     logger.info(identifier.toString());
 
                     exampleGenomeReference.getIdentifiers().add(identifier);
 
-                    hearsayDAOBean.getGenomeReferenceDAO().save(exampleGenomeReference);
+                    hearsayDAOBeanService.getGenomeReferenceDAO().save(exampleGenomeReference);
 
                 }
             }
@@ -130,14 +132,6 @@ public class PullGenomeReferencesRunnable implements Runnable {
             e.printStackTrace();
         }
         return ret;
-    }
-
-    public HearsayDAOBean getHearsayDAOBean() {
-        return hearsayDAOBean;
-    }
-
-    public void setHearsayDAOBean(HearsayDAOBean hearsayDAOBean) {
-        this.hearsayDAOBean = hearsayDAOBean;
     }
 
 }
