@@ -11,7 +11,7 @@ import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.renci.hearsay.commands.ncbi.util.FTPUtil;
-import org.renci.hearsay.dao.HearsayDAOBean;
+import org.renci.hearsay.dao.HearsayDAOBeanService;
 import org.renci.hearsay.dao.model.Chromosome;
 import org.renci.hearsay.dao.model.Gene;
 import org.renci.hearsay.dao.model.GeneSymbol;
@@ -23,10 +23,11 @@ public class PullGenesRunnable implements Runnable {
 
     private final Logger logger = LoggerFactory.getLogger(PullGenesRunnable.class);
 
-    private HearsayDAOBean hearsayDAOBean;
+    private HearsayDAOBeanService hearsayDAOBeanService;
 
-    public PullGenesRunnable() {
+    public PullGenesRunnable(HearsayDAOBeanService hearsayDAOBeanService) {
         super();
+        this.hearsayDAOBeanService = hearsayDAOBeanService;
     }
 
     @Override
@@ -76,32 +77,30 @@ public class PullGenesRunnable implements Runnable {
                     Gene gene = new Gene();
                     gene.setDescription(description);
                     gene.setSymbol(symbol);
-                    List<Gene> potentiallyFoundGeneList = hearsayDAOBean.getGeneDAO().findByExample(gene);
+                    List<Gene> potentiallyFoundGeneList = hearsayDAOBeanService.getGeneDAO().findByExample(gene);
                     if (CollectionUtils.isNotEmpty(potentiallyFoundGeneList)) {
                         logger.warn("Gene is already persisted: {}", symbol);
                         continue;
                     }
-                    gene.setId(hearsayDAOBean.getGeneDAO().save(gene));
+                    gene.setId(hearsayDAOBeanService.getGeneDAO().save(gene));
                     logger.info(gene.toString());
 
                     if (chromosome.indexOf("|") != -1) {
                         String[] split = chromosome.split("|");
                         for (String chr : split) {
-                            List<Chromosome> potentialChromosomeList = hearsayDAOBean.getChromosomeDAO()
-                                    .findByName(chr);
+                            List<Chromosome> potentialChromosomeList = hearsayDAOBeanService.getChromosomeDAO().findByName(chr);
                             if (CollectionUtils.isNotEmpty(potentialChromosomeList)) {
                                 gene.getChromosomes().addAll(potentialChromosomeList);
                             }
                         }
                     } else {
-                        List<Chromosome> potentialChromosomeList = hearsayDAOBean.getChromosomeDAO().findByName(
-                                chromosome);
+                        List<Chromosome> potentialChromosomeList = hearsayDAOBeanService.getChromosomeDAO().findByName(chromosome);
                         if (CollectionUtils.isNotEmpty(potentialChromosomeList)) {
                             gene.getChromosomes().addAll(potentialChromosomeList);
                         }
                     }
 
-                    hearsayDAOBean.getGeneDAO().save(gene);
+                    hearsayDAOBeanService.getGeneDAO().save(gene);
 
                     if (!synonyms.trim().equals("-")) {
                         StringTokenizer geneSymbolStringTokenizer = new StringTokenizer(synonyms, "|");
@@ -111,17 +110,17 @@ public class PullGenesRunnable implements Runnable {
                             GeneSymbol gs = new GeneSymbol();
                             gs.setSymbol(geneSymbol);
                             gs.setGene(gene);
-                            gs.setId(hearsayDAOBean.getGeneSymbolDAO().save(gs));
+                            gs.setId(hearsayDAOBeanService.getGeneSymbolDAO().save(gs));
                             logger.debug(geneSymbol.toString());
                             gene.getAliases().add(gs);
                         }
                     }
 
                     Identifier identifier = new Identifier("www.ncbi.nlm.nih.gov/gene", geneId);
-                    identifier.setId(hearsayDAOBean.getIdentifierDAO().save(identifier));
+                    identifier.setId(hearsayDAOBeanService.getIdentifierDAO().save(identifier));
                     logger.debug(identifier.toString());
                     gene.getIdentifiers().add(identifier);
-                    hearsayDAOBean.getGeneDAO().save(gene);
+                    hearsayDAOBeanService.getGeneDAO().save(gene);
 
                 }
 
@@ -131,14 +130,6 @@ public class PullGenesRunnable implements Runnable {
             e.printStackTrace();
         }
         // genesFile.delete();
-    }
-
-    public HearsayDAOBean getHearsayDAOBean() {
-        return hearsayDAOBean;
-    }
-
-    public void setHearsayDAOBean(HearsayDAOBean hearsayDAOBean) {
-        this.hearsayDAOBean = hearsayDAOBean;
     }
 
 }
