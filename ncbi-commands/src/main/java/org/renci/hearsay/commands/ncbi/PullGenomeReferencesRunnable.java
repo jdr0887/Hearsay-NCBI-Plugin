@@ -84,12 +84,8 @@ public class PullGenomeReferencesRunnable implements Runnable {
                         continue;
                     }
 
-                    exampleGenomeReference
-                            .setId(hearsayDAOBeanService.getGenomeReferenceDAO().save(exampleGenomeReference));
-
-                    String id = getGenomeReferenceAssemblyId(assemblyAccession);
-
-                    Identifier identifier = new Identifier("www.ncbi.nlm.nih.gov/assembly", id);
+                    Identifier identifier = new Identifier("www.ncbi.nlm.nih.gov/assembly",
+                            getGenomeReferenceAssemblyId(assemblyAccession));
                     identifier.setId(hearsayDAOBeanService.getIdentifierDAO().save(identifier));
                     logger.info(identifier.toString());
 
@@ -102,7 +98,7 @@ public class PullGenomeReferencesRunnable implements Runnable {
         } catch (HearsayDAOException | IOException e) {
             e.printStackTrace();
         }
-        // refseqAssemblySummaryFile.delete();
+        refseqAssemblySummaryFile.delete();
     }
 
     private String getGenomeReferenceAssemblyId(String assemblyAccession) {
