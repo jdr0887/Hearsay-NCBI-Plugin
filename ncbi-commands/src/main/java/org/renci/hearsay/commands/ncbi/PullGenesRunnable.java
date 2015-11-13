@@ -32,7 +32,7 @@ public class PullGenesRunnable implements Runnable {
 
     @Override
     public void run() {
-        logger.debug("ENTERING run()");
+        logger.info("ENTERING run()");
 
         File genesFile = FTPUtil.ncbiDownload("/gene/DATA/GENE_INFO/Mammalia", "Homo_sapiens.gene_info.gz");
 
@@ -74,14 +74,14 @@ public class PullGenesRunnable implements Runnable {
                         continue;
                     }
 
-                    Gene gene = new Gene();
-                    gene.setDescription(description);
-                    gene.setSymbol(symbol);
-                    List<Gene> potentiallyFoundGeneList = hearsayDAOBeanService.getGeneDAO().findByExample(gene);
+                    List<Gene> potentiallyFoundGeneList = hearsayDAOBeanService.getGeneDAO().findBySymbol(symbol);
                     if (CollectionUtils.isNotEmpty(potentiallyFoundGeneList)) {
                         logger.warn("Gene is already persisted: {}", symbol);
                         continue;
                     }
+                    Gene gene = new Gene();
+                    gene.setSymbol(symbol);
+                    gene.setDescription(description);
                     gene.setId(hearsayDAOBeanService.getGeneDAO().save(gene));
                     logger.info(gene.toString());
 
@@ -100,6 +100,11 @@ public class PullGenesRunnable implements Runnable {
                         }
                     }
 
+                    Identifier identifier = new Identifier("www.ncbi.nlm.nih.gov/gene", geneId);
+                    identifier.setId(hearsayDAOBeanService.getIdentifierDAO().save(identifier));
+                    logger.debug(identifier.toString());
+                    gene.getIdentifiers().add(identifier);
+                    
                     hearsayDAOBeanService.getGeneDAO().save(gene);
 
                     if (!synonyms.trim().equals("-")) {
@@ -116,11 +121,6 @@ public class PullGenesRunnable implements Runnable {
                         }
                     }
 
-                    Identifier identifier = new Identifier("www.ncbi.nlm.nih.gov/gene", geneId);
-                    identifier.setId(hearsayDAOBeanService.getIdentifierDAO().save(identifier));
-                    logger.debug(identifier.toString());
-                    gene.getIdentifiers().add(identifier);
-                    hearsayDAOBeanService.getGeneDAO().save(gene);
 
                 }
 
@@ -130,6 +130,7 @@ public class PullGenesRunnable implements Runnable {
             e.printStackTrace();
         }
         // genesFile.delete();
+        logger.info("FINISHED run()");
     }
 
 }
