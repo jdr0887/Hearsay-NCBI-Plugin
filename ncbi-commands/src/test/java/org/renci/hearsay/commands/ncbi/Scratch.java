@@ -1,12 +1,16 @@
 package org.renci.hearsay.commands.ncbi;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.junit.Test;
 import org.renci.gene2accession.G2AFilter;
 import org.renci.gene2accession.G2AParser;
@@ -18,6 +22,8 @@ import org.renci.gene2accession.filter.G2ARNANucleotideAccessionVersionPrefixFil
 import org.renci.gene2accession.filter.G2ATaxonIdFilter;
 import org.renci.gene2accession.model.Record;
 import org.renci.hearsay.commands.ncbi.util.FTPUtil;
+import org.renci.hearsay.dao.model.GenomeReference;
+import org.renci.hearsay.dao.model.Identifier;
 
 public class Scratch {
 
@@ -45,8 +51,7 @@ public class Scratch {
 
         File genes2RefSeqFile = FTPUtil.ncbiDownload("/gene/DATA", "gene2refseq.gz");
         G2AParser gene2AccessionParser = G2AParser.getInstance(8);
-        List<G2AFilter> filters = Arrays.asList(new G2AFilter[] {
-                new G2ATaxonIdFilter(9606),
+        List<G2AFilter> filters = Arrays.asList(new G2AFilter[] { new G2ATaxonIdFilter(9606),
                 // new G2AAssemblyFilter("Reference.*(Primary Assembly|ALT_REF_LOCI.*)"),
                 new G2AAssemblyFilter("Reference.*Primary Assembly"),
                 new G2AProteinAccessionVersionPrefixFilter(Arrays.asList(new String[] { "NP_" })),
@@ -56,5 +61,51 @@ public class Scratch {
         List<Record> recordList = gene2AccessionParser.parse(andFilter, genes2RefSeqFile);
         System.out.println(recordList.size());
 
+    }
+
+    @Test
+    public void testRefseqAssemblySummaryFile() throws IOException {
+
+        try (BufferedReader br = new BufferedReader(new FileReader(new File("/tmp", "assembly_summary_refseq.txt")))) {
+            // # assembly_accession bioproject biosample wgs_master refseq_category taxid species_taxid
+            // organism_name infraspecific_name isolate version_status assembly_level release_type genome_rep
+            // seq_rel_date asm_name submitter gbrs_paired_asm paired_asm_comp ftp_path
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (line.startsWith("#")) {
+                    continue;
+                }
+                try (Scanner scanner = new Scanner(line).useDelimiter("\t")) {
+                    String assemblyAccession = scanner.next();
+                    String bioProject = scanner.next();
+                    String bioSample = scanner.next();
+                    String wgsMaster = scanner.next();
+                    String refseqCategory = scanner.next();
+                    String taxId = scanner.next();
+                    String speciesTaxId = scanner.next();
+                    String organismName = scanner.next();
+                    if (!"homo sapiens".equalsIgnoreCase(organismName)) {
+                        continue;
+                    }
+                    String infraspecificName = scanner.next();
+                    String isolate = scanner.next();
+                    String versionStatus = scanner.next();
+                    String assemblyLevel = scanner.next();
+                    String releaseType = scanner.next();
+                    String genomeRep = scanner.next();
+                    String seqReleaseDate = scanner.next();
+                    String asmName = scanner.next();
+                    if (!asmName.startsWith("GR")) {
+                        continue;
+                    }
+                    String submitter = scanner.next();
+                    String gbrsPairedASM = scanner.next();
+                    String pairedASMComp = scanner.next();
+                    String ftpPath = scanner.next();
+
+                }
+            }
+
+        }
     }
 }
