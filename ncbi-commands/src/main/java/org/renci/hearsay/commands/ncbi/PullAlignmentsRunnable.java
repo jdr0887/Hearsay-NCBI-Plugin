@@ -245,7 +245,7 @@ public class PullAlignmentsRunnable implements Runnable {
                 // add alignments
                 Alignment alignment = new Alignment();
                 alignment.setId(hearsayDAOBeanService.getAlignmentDAO().save(alignment));
-                alignment.setReferenceSequences(referenceSequences);
+                alignment.getReferenceSequences().addAll(referenceSequences);
 
                 Location proteinLocation = new Location(firstCDSFeatureLocationStart, firstCDSFeatureLocationStop);
                 proteinLocation.setId(hearsayDAOBeanService.getLocationDAO().save(proteinLocation));
@@ -456,7 +456,7 @@ public class PullAlignmentsRunnable implements Runnable {
                 // add alignments
                 Alignment alignment = new Alignment();
                 alignment.setId(hearsayDAOBeanService.getAlignmentDAO().save(alignment));
-                alignment.setReferenceSequences(potentialRefSeqs);
+                alignment.getReferenceSequences().addAll(potentialRefSeqs);
 
                 // add protein info to alignment
                 String firstCDSFeatureLocation = firstCDSFeature.getLocation();
@@ -641,7 +641,7 @@ public class PullAlignmentsRunnable implements Runnable {
                     }
 
                     hearsayFeature.setId(hearsayDAOBeanService.getFeatureDAO().save(hearsayFeature));
-                    hearsayFeature.setReferenceSequences(referenceSequences);
+                    hearsayFeature.getReferenceSequences().addAll(referenceSequences);
 
                     if (NumberUtils.isNumber(location)) {
                         Location l = new Location(Integer.valueOf(location), Integer.valueOf(location));
