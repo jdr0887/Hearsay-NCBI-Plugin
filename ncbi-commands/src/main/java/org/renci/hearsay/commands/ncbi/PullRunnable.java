@@ -39,8 +39,8 @@ public class PullRunnable implements Runnable {
             chromosomeList.add("MT");
 
             for (String chromosome : chromosomeList) {
-                List<Chromosome> foundChromosomeList = hearsayDAOBeanService.getChromosomeDAO().findByName(chromosome);
-                if (CollectionUtils.isEmpty(foundChromosomeList)) {
+                List<Chromosome> foundChromosomes = hearsayDAOBeanService.getChromosomeDAO().findByName(chromosome);
+                if (CollectionUtils.isEmpty(foundChromosomes)) {
                     hearsayDAOBeanService.getChromosomeDAO().save(new Chromosome(chromosome));
                 }
             }
@@ -57,8 +57,7 @@ public class PullRunnable implements Runnable {
             PullGenesRunnable pullGenesRunnable = new PullGenesRunnable(hearsayDAOBeanService);
             es.submit(pullGenesRunnable);
 
-            PullGenomeReferencesRunnable pullGenomeReferencesRunnable = new PullGenomeReferencesRunnable(
-                    hearsayDAOBeanService);
+            PullGenomeReferencesRunnable pullGenomeReferencesRunnable = new PullGenomeReferencesRunnable(hearsayDAOBeanService);
             es.submit(pullGenomeReferencesRunnable);
 
             es.shutdown();
@@ -72,8 +71,7 @@ public class PullRunnable implements Runnable {
         long startPersistReferenceSequencesTime = System.currentTimeMillis();
         try {
             ExecutorService es = Executors.newSingleThreadExecutor();
-            PullReferenceSequencesRunnable pullReferenceSequencesRunnable = new PullReferenceSequencesRunnable(
-                    hearsayDAOBeanService);
+            PullReferenceSequencesRunnable pullReferenceSequencesRunnable = new PullReferenceSequencesRunnable(hearsayDAOBeanService);
             es.submit(pullReferenceSequencesRunnable);
             es.shutdown();
             es.awaitTermination(2L, TimeUnit.HOURS);
@@ -108,8 +106,7 @@ public class PullRunnable implements Runnable {
         }
         long endPersistAlignmentUTRsTime = System.currentTimeMillis();
 
-        logger.info("duration to persist Chromosomes: {} seconds",
-                (endPersistChromosomeTime - startPersistChromosomeTime) / 1000);
+        logger.info("duration to persist Chromosomes: {} seconds", (endPersistChromosomeTime - startPersistChromosomeTime) / 1000);
 
         logger.info("duration to persist Genes & GenomeReferences: {} seconds",
                 (endPersistGenesAndGenomeReferencesTime - startPersistGenesAndGenomeReferencesTime) / 1000);
@@ -117,11 +114,9 @@ public class PullRunnable implements Runnable {
         logger.info("duration to persist ReferenceSequences: {} seconds",
                 (endPersistReferenceSequencesTime - startPersistReferenceSequencesTime) / 1000);
 
-        logger.info("duration to persist Alignments: {} seconds",
-                (endPersistAlignmentsTime - startPersistAlignmentsTime) / 1000);
+        logger.info("duration to persist Alignments: {} seconds", (endPersistAlignmentsTime - startPersistAlignmentsTime) / 1000);
 
-        logger.info("duration to persist Alignment UTRs: {} seconds",
-                (endPersistAlignmentUTRsTime - startPersistAlignmentUTRsTime) / 1000);
+        logger.info("duration to persist Alignment UTRs: {} seconds", (endPersistAlignmentUTRsTime - startPersistAlignmentUTRsTime) / 1000);
 
     }
 

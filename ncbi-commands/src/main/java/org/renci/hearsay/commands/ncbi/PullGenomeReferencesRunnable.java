@@ -13,7 +13,6 @@ import java.util.Scanner;
 import org.apache.commons.collections4.CollectionUtils;
 import org.renci.hearsay.commands.ncbi.util.FTPUtil;
 import org.renci.hearsay.dao.HearsayDAOBeanService;
-import org.renci.hearsay.dao.HearsayDAOException;
 import org.renci.hearsay.dao.model.GenomeReference;
 import org.renci.hearsay.dao.model.Identifier;
 import org.slf4j.Logger;
@@ -73,12 +72,8 @@ public class PullGenomeReferencesRunnable implements Runnable {
                     String pairedASMComp = scanner.next();
                     String ftpPath = scanner.next();
 
-                    GenomeReference exampleGenomeReference = new GenomeReference();
-                    exampleGenomeReference.setName(asmName);
-
-                    List<GenomeReference> potentiallyFoundGenomeReferenceList = hearsayDAOBeanService
-                            .getGenomeReferenceDAO().findByExample(exampleGenomeReference);
-                    logger.info(exampleGenomeReference.toString());
+                    List<GenomeReference> potentiallyFoundGenomeReferenceList = hearsayDAOBeanService.getGenomeReferenceDAO()
+                            .findByName(asmName);
                     if (CollectionUtils.isNotEmpty(potentiallyFoundGenomeReferenceList)) {
                         logger.info("GenomeReference is already persisted");
                         continue;
@@ -89,13 +84,14 @@ public class PullGenomeReferencesRunnable implements Runnable {
                     identifier.setId(hearsayDAOBeanService.getIdentifierDAO().save(identifier));
                     logger.info(identifier.toString());
 
-                    exampleGenomeReference.getIdentifiers().add(identifier);
-
-                    hearsayDAOBeanService.getGenomeReferenceDAO().save(exampleGenomeReference);
+                    GenomeReference genomeReference = new GenomeReference(asmName);
+                    genomeReference.getIdentifiers().add(identifier);
+                    genomeReference.setId(hearsayDAOBeanService.getGenomeReferenceDAO().save(genomeReference));
+                    logger.info(genomeReference.toString());
 
                 }
             }
-        } catch (HearsayDAOException | IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         refseqAssemblySummaryFile.delete();
@@ -104,8 +100,7 @@ public class PullGenomeReferencesRunnable implements Runnable {
     private String getGenomeReferenceAssemblyId(String assemblyAccession) {
         String ret = null;
         try {
-            String url = String.format("http://www.ncbi.nlm.nih.gov/assembly/%s?report=xml&format=text",
-                    assemblyAccession);
+            String url = String.format("http://www.ncbi.nlm.nih.gov/assembly/%s?report=xml&format=text", assemblyAccession);
             URL obj = new URL(url);
             HttpURLConnection con = (HttpURLConnection) obj.openConnection();
             con.setRequestMethod("GET");

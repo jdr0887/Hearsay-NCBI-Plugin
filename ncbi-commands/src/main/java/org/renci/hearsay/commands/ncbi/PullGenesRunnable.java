@@ -79,11 +79,19 @@ public class PullGenesRunnable implements Runnable {
                         logger.warn("Gene is already persisted: {}", symbol);
                         continue;
                     }
+
+                    Identifier identifier = new Identifier("www.ncbi.nlm.nih.gov/gene", geneId);
+                    identifier.setId(hearsayDAOBeanService.getIdentifierDAO().save(identifier));
+                    logger.debug(identifier.toString());
+
                     Gene gene = new Gene();
                     gene.setSymbol(symbol);
                     gene.setDescription(description);
                     gene.setId(hearsayDAOBeanService.getGeneDAO().save(gene));
                     logger.info(gene.toString());
+
+                    gene.getIdentifiers().add(identifier);
+                    hearsayDAOBeanService.getGeneDAO().save(gene);
 
                     if (chromosome.indexOf("|") != -1) {
                         String[] split = chromosome.split("|");
@@ -99,12 +107,6 @@ public class PullGenesRunnable implements Runnable {
                             gene.getChromosomes().addAll(potentialChromosomeList);
                         }
                     }
-
-                    Identifier identifier = new Identifier("www.ncbi.nlm.nih.gov/gene", geneId);
-                    identifier.setId(hearsayDAOBeanService.getIdentifierDAO().save(identifier));
-                    logger.debug(identifier.toString());
-                    gene.getIdentifiers().add(identifier);
-                    
                     hearsayDAOBeanService.getGeneDAO().save(gene);
 
                     if (!synonyms.trim().equals("-")) {
@@ -119,8 +121,8 @@ public class PullGenesRunnable implements Runnable {
                             logger.debug(geneSymbol.toString());
                             gene.getAliases().add(gs);
                         }
+                        hearsayDAOBeanService.getGeneDAO().save(gene);
                     }
-
 
                 }
 
@@ -129,7 +131,7 @@ public class PullGenesRunnable implements Runnable {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        // genesFile.delete();
+        genesFile.delete();
         logger.info("FINISHED run()");
     }
 

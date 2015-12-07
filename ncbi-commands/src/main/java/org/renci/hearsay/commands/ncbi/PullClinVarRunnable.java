@@ -63,8 +63,7 @@ public class PullClinVarRunnable implements Runnable {
             File clinvarDownload = FTPUtil.ncbiDownload("/pub/clinvar/xml", "ClinVarFullRelease_00-latest.xml.gz");
             JAXBContext jc = JAXBContext.newInstance(ReleaseType.class);
             Unmarshaller u = jc.createUnmarshaller();
-            ReleaseType releaseType = (ReleaseType) u
-                    .unmarshal(new GZIPInputStream(new FileInputStream(clinvarDownload)));
+            ReleaseType releaseType = (ReleaseType) u.unmarshal(new GZIPInputStream(new FileInputStream(clinvarDownload)));
             List<PublicSetType> publicSetType = releaseType.getClinVarSet();
             ExecutorService es = Executors.newFixedThreadPool(4);
             for (PublicSetType pst : publicSetType) {
@@ -116,8 +115,7 @@ public class PullClinVarRunnable implements Runnable {
                 canonicalAllele.setId(hearsayDAOBeanService.getCanonicalAlleleDAO().save(canonicalAllele));
 
                 if ("Variant".equals(mst.getType())) {
-                    Identifier identifier = new Identifier("www.ncbi.nlm.nih.gov/clinvar/variation",
-                            mst.getID().toString());
+                    Identifier identifier = new Identifier("www.ncbi.nlm.nih.gov/clinvar/variation", mst.getID().toString());
                     identifier.setId(hearsayDAOBeanService.getIdentifierDAO().save(identifier));
                     logger.info(identifier.toString());
                     canonicalAllele.getIdentifiers().add(identifier);
@@ -144,8 +142,8 @@ public class PullClinVarRunnable implements Runnable {
                             SimpleAllele simpleAllele = new SimpleAllele();
                             simpleAllele.setName(attribute.getValue());
                             if (saType.equals(SimpleAlleleType.TRANSCRIPT) || saType.equals(SimpleAlleleType.GENOMIC)) {
-                                simpleAllele.setAllele(attribute.getValue().substring(attribute.getValue().length() - 1,
-                                        attribute.getValue().length()));
+                                simpleAllele.setAllele(
+                                        attribute.getValue().substring(attribute.getValue().length() - 1, attribute.getValue().length()));
                             }
                             simpleAllele.setType(saType);
                             simpleAllele.setCanonicalAllele(canonicalAllele);
@@ -176,8 +174,7 @@ public class PullClinVarRunnable implements Runnable {
                             for (SimpleAllele sa : simpleAlleleSet) {
                                 if (sa.getName().startsWith(refSeqId.substring(0, refSeqId.indexOf(":")))) {
                                     MolecularConsequence mc = new MolecularConsequence(
-                                            Integer.valueOf(sequenceOntologyId.replace("SO:", "")),
-                                            MolecularConsequenceType.PRIMARY);
+                                            Integer.valueOf(sequenceOntologyId.replace("SO:", "")), MolecularConsequenceType.PRIMARY);
                                     mc.setSimpleAllele(sa);
                                     mc.setId(hearsayDAOBeanService.getMolecularConsequenceDAO().save(mc));
                                     sa.getMolecularConsequences().add(mc);
@@ -198,8 +195,7 @@ public class PullClinVarRunnable implements Runnable {
                         ReferenceCoordinate referenceCoordinate = new ReferenceCoordinate();
                         referenceCoordinate.setReferenceSequence(referenceSequence);
 
-                        String hgvsDescription = sa.getName().substring(sa.getName().indexOf(":") + 1,
-                                sa.getName().length());
+                        String hgvsDescription = sa.getName().substring(sa.getName().indexOf(":") + 1, sa.getName().length());
                         String type = hgvsDescription.substring(0, 1);
                         if (type.equals("c") || type.equals("g")) {
                             String s = hgvsDescription.substring(2);
@@ -211,16 +207,14 @@ public class PullClinVarRunnable implements Runnable {
                                 referenceCoordinate.setRefAllele(s.substring(0, s.indexOf(">")));
                                 if (NumberUtils.isNumber(location)) {
                                     // a change in the coding
-                                    Location rcLocation = new Location(Integer.valueOf(location) - 1,
-                                            Integer.valueOf(location));
+                                    Location rcLocation = new Location(Integer.valueOf(location) - 1, Integer.valueOf(location));
                                     rcLocation.setId(hearsayDAOBeanService.getLocationDAO().save(rcLocation));
                                     referenceCoordinate.setLocation(rcLocation);
                                 } else {
                                     if (location.contains("-") && !location.startsWith("-")) {
                                         // a change in the 3' end of an intron
                                         Integer start = Integer.valueOf(location.substring(0, location.indexOf("-")));
-                                        Integer end = Integer.valueOf(
-                                                location.substring(location.indexOf("-") + 1, location.length()));
+                                        Integer end = Integer.valueOf(location.substring(location.indexOf("-") + 1, location.length()));
                                         IntronOffset intron = new IntronOffset(start, end, StrandType.MINUS);
                                         intron.setId(hearsayDAOBeanService.getIntronOffsetDAO().save(intron));
                                         referenceCoordinate.setIntronOffset(intron);
@@ -236,8 +230,7 @@ public class PullClinVarRunnable implements Runnable {
 
                                     if (location.contains("+")) {
                                         // a change in the 5' end of an intron
-                                        Integer end = Integer.valueOf(
-                                                location.substring(location.indexOf("+") + 1, location.length()));
+                                        Integer end = Integer.valueOf(location.substring(location.indexOf("+") + 1, location.length()));
                                         Integer start = end - 1;
                                         IntronOffset intron = new IntronOffset(start, end, StrandType.PLUS);
                                         intron.setId(hearsayDAOBeanService.getIntronOffsetDAO().save(intron));

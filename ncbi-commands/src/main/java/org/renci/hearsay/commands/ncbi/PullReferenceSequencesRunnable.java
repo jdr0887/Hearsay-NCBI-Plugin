@@ -84,8 +84,7 @@ public class PullReferenceSequencesRunnable implements Runnable {
 
             try {
                 ReferenceSequence referenceSequence = new ReferenceSequence();
-                referenceSequence.setStrandType(
-                        record.getOrientation().equals(OrientationType.MINUS) ? StrandType.MINUS : StrandType.PLUS);
+                referenceSequence.setStrandType(record.getOrientation().equals(OrientationType.MINUS) ? StrandType.MINUS : StrandType.PLUS);
 
                 String prefix = record.getRNANucleotideAccessionVersion().substring(0, 3);
                 for (ReferenceSequenceType referenceSequenceType : ReferenceSequenceType.values()) {
@@ -95,8 +94,7 @@ public class PullReferenceSequencesRunnable implements Runnable {
                     }
                 }
 
-                Location genomicLocation = new Location(record.getGenomicStartPosition(),
-                        record.getGenomicEndPosition());
+                Location genomicLocation = new Location(record.getGenomicStartPosition(), record.getGenomicEndPosition());
                 genomicLocation.setId(hearsayDAOBeanService.getLocationDAO().save(genomicLocation));
                 referenceSequence.setGenomicLocation(genomicLocation);
 
@@ -112,8 +110,7 @@ public class PullReferenceSequencesRunnable implements Runnable {
 
                 // set GenomeReference
                 GenomeReference exampleGenomeReference = new GenomeReference();
-                exampleGenomeReference
-                        .setName(record.getAssembly().replace("Reference", "").replace("Primary Assembly", "").trim());
+                exampleGenomeReference.setName(record.getAssembly().replace("Reference", "").replace("Primary Assembly", "").trim());
                 List<GenomeReference> potentialGenomeReferences = hearsayDAOBeanService.getGenomeReferenceDAO()
                         .findByExample(exampleGenomeReference);
                 if (CollectionUtils.isNotEmpty(potentialGenomeReferences)) {
@@ -154,8 +151,8 @@ public class PullReferenceSequencesRunnable implements Runnable {
                 referenceSequence.getIdentifiers().add(identifier);
 
                 hearsayDAOBeanService.getReferenceSequenceDAO().save(referenceSequence);
-                logger.info("refSeqAccession = {}, proteinAccession = {}, genomicAccession = {}",
-                        versionedRefSeqAccession, versionedProteinAccession, versionedGenomicAccession);
+                logger.info("refSeqAccession = {}, proteinAccession = {}, genomicAccession = {}", versionedRefSeqAccession,
+                        versionedProteinAccession, versionedGenomicAccession);
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
                 e.printStackTrace();

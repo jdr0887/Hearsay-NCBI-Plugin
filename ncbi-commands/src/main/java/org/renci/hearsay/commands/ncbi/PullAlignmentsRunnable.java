@@ -51,11 +51,10 @@ public class PullAlignmentsRunnable implements Runnable {
 
     private static final Pattern featureLocationPattern = Pattern.compile("^(join|order)\\((.+)\\)$");
 
-    private static final List<String> inclusionPatterns = Arrays
-            .asList(new String[] { "misc_feature", "polyA_signal", "polyA_site", "transit_peptide", "mat_peptide",
-                    "sig_peptide", "unsure", "stem_loop", "protein_bind", "repeat_region", "prim_transcript",
-                    "proprotein", "LTR", "TATA_signal", "primer_bind", "terminator", "misc_difference", "misc_binding",
-                    "RBS", "misc_signal", "J_segment", "C_region", "conflict", "promoter", "ncRNA", "modified_base" });
+    private static final List<String> inclusionPatterns = Arrays.asList(new String[] { "misc_feature", "polyA_signal", "polyA_site",
+            "transit_peptide", "mat_peptide", "sig_peptide", "unsure", "stem_loop", "protein_bind", "repeat_region", "prim_transcript",
+            "proprotein", "LTR", "TATA_signal", "primer_bind", "terminator", "misc_difference", "misc_binding", "RBS", "misc_signal",
+            "J_segment", "C_region", "conflict", "promoter", "ncRNA", "modified_base" });
 
     private HearsayDAOBeanService hearsayDAOBeanService;
 
@@ -72,8 +71,7 @@ public class PullAlignmentsRunnable implements Runnable {
 
             LinkedList<String> alignmentsLines = new LinkedList<String>();
 
-            File alignmentsFile = FTPUtil.ncbiDownload("/refseq/H_sapiens/alignments",
-                    "GCF_000001405.28_knownrefseq_alignments.gff3");
+            File alignmentsFile = FTPUtil.ncbiDownload("/refseq/H_sapiens/alignments", "GCF_000001405.28_knownrefseq_alignments.gff3");
             try (FileInputStream fis = new FileInputStream(alignmentsFile);
                     InputStreamReader isr = new InputStreamReader(fis);
                     BufferedReader br = new BufferedReader(isr)) {
@@ -89,11 +87,10 @@ public class PullAlignmentsRunnable implements Runnable {
             // this will take a while
             GBFFManager gbffMgr = GBFFManager.getInstance(1, true);
 
-            List<GBFFFilter> filters = Arrays.asList(new GBFFFilter[] {
-                    new GBFFSequenceAccessionPrefixFilter(Arrays.asList(new String[] { "NM_", "NR_" })),
-                    new GBFFSourceOrganismNameFilter("Homo sapiens"),
-                    new GBFFFeatureSourceOrganismNameFilter("Homo sapiens"), new GBFFFeatureTypeNameFilter("CDS"),
-                    new GBFFFeatureTypeNameFilter("source") });
+            List<GBFFFilter> filters = Arrays
+                    .asList(new GBFFFilter[] { new GBFFSequenceAccessionPrefixFilter(Arrays.asList(new String[] { "NM_", "NR_" })),
+                            new GBFFSourceOrganismNameFilter("Homo sapiens"), new GBFFFeatureSourceOrganismNameFilter("Homo sapiens"),
+                            new GBFFFeatureTypeNameFilter("CDS"), new GBFFFeatureTypeNameFilter("source") });
 
             GBFFAndFilter gbffFilter = new GBFFAndFilter(filters);
 
@@ -108,12 +105,10 @@ public class PullAlignmentsRunnable implements Runnable {
                     for (Sequence sequence : sequenceList) {
 
                         String refSeqVersionedAccession = sequence.getVersion().trim().contains(" ")
-                                ? sequence.getVersion().substring(0, sequence.getVersion().indexOf(" "))
-                                : sequence.getVersion();
+                                ? sequence.getVersion().substring(0, sequence.getVersion().indexOf(" ")) : sequence.getVersion();
 
                         List<Identifier> rnaNucleotideAccessionIdentifierList = hearsayDAOBeanService.getIdentifierDAO()
-                                .findByExample(
-                                        new Identifier("www.ncbi.nlm.nih.gov/nuccore", refSeqVersionedAccession));
+                                .findByExample(new Identifier("www.ncbi.nlm.nih.gov/nuccore", refSeqVersionedAccession));
 
                         String proteinAccession = null;
                         Feature firstCDSFeature = null;
@@ -141,8 +136,7 @@ public class PullAlignmentsRunnable implements Runnable {
                                 .findByIdentifiers(identifierIdList);
 
                         if (CollectionUtils.isEmpty(potentialRefSeqs)) {
-                            logger.warn(
-                                    "Could not find ReferenceSequence: refSeqVersionedAccession = {}, proteinAccession = {}",
+                            logger.warn("Could not find ReferenceSequence: refSeqVersionedAccession = {}, proteinAccession = {}",
                                     refSeqVersionedAccession, proteinAccession);
                             continue;
                         }
@@ -152,8 +146,7 @@ public class PullAlignmentsRunnable implements Runnable {
 
                         // persistAlignmentsExecutorService.submit(new PersistAlignmentsFromUCSCRunnable(hearsayDAOBean,
                         // sequence));
-                        es.submit(new PersistAlignmentsFromNCBIRunnable(sequence, potentialRefSeqs, firstCDSFeature,
-                                alignmentsLines));
+                        es.submit(new PersistAlignmentsFromNCBIRunnable(sequence, potentialRefSeqs, firstCDSFeature, alignmentsLines));
                         es.submit(new PersistFeaturesRunnable(sequence, potentialRefSeqs));
                     }
 
@@ -179,9 +172,8 @@ public class PullAlignmentsRunnable implements Runnable {
 
         private final LinkedList<String> alignmentsLines;
 
-        public PersistAlignmentsFromNCBIRunnable(final Sequence sequence,
-                final List<ReferenceSequence> referenceSequences, final Feature firstCDSFeature,
-                final LinkedList<String> alignmentsLines) {
+        public PersistAlignmentsFromNCBIRunnable(final Sequence sequence, final List<ReferenceSequence> referenceSequences,
+                final Feature firstCDSFeature, final LinkedList<String> alignmentsLines) {
             super();
             this.sequence = sequence;
             this.referenceSequences = referenceSequences;
@@ -195,8 +187,7 @@ public class PullAlignmentsRunnable implements Runnable {
 
             try {
                 String refSeqVersionedAccession = sequence.getVersion().trim().contains(" ")
-                        ? sequence.getVersion().substring(0, sequence.getVersion().indexOf(" "))
-                        : sequence.getVersion();
+                        ? sequence.getVersion().substring(0, sequence.getVersion().indexOf(" ")) : sequence.getVersion();
 
                 final StrandType strandType = referenceSequences.get(0).getStrandType();
 
@@ -291,11 +282,9 @@ public class PullAlignmentsRunnable implements Runnable {
                         @Override
                         public int compare(Region r1, Region r2) {
                             if (strandType.equals(StrandType.MINUS)) {
-                                return r2.getTranscriptLocation().getStart()
-                                        .compareTo(r1.getTranscriptLocation().getStart());
+                                return r2.getTranscriptLocation().getStart().compareTo(r1.getTranscriptLocation().getStart());
                             } else {
-                                return r1.getTranscriptLocation().getStart()
-                                        .compareTo(r2.getTranscriptLocation().getStart());
+                                return r1.getTranscriptLocation().getStart().compareTo(r2.getTranscriptLocation().getStart());
                             }
                         }
                     });
@@ -341,8 +330,7 @@ public class PullAlignmentsRunnable implements Runnable {
                                             && region.getTranscriptLocation().getStop().equals(start)) {
                                         Location genomicLocation = new Location(Integer.valueOf(genomicStart),
                                                 Integer.valueOf(genomicStop));
-                                        genomicLocation
-                                                .setId(hearsayDAOBeanService.getLocationDAO().save(genomicLocation));
+                                        genomicLocation.setId(hearsayDAOBeanService.getLocationDAO().save(genomicLocation));
                                         region.setRegionLocation(genomicLocation);
                                         hearsayDAOBeanService.getRegionDAO().save(region);
                                     }
@@ -351,8 +339,7 @@ public class PullAlignmentsRunnable implements Runnable {
                                             && region.getTranscriptLocation().getStop().equals(stop)) {
                                         Location genomicLocation = new Location(Integer.valueOf(genomicStart),
                                                 Integer.valueOf(genomicStop));
-                                        genomicLocation
-                                                .setId(hearsayDAOBeanService.getLocationDAO().save(genomicLocation));
+                                        genomicLocation.setId(hearsayDAOBeanService.getLocationDAO().save(genomicLocation));
                                         region.setRegionLocation(genomicLocation);
                                         hearsayDAOBeanService.getRegionDAO().save(region);
                                     }
@@ -405,12 +392,10 @@ public class PullAlignmentsRunnable implements Runnable {
 
             try {
                 String refseqAccession = sequence.getAccession().contains(" ")
-                        ? sequence.getAccession().substring(0, sequence.getAccession().indexOf(" "))
-                        : sequence.getAccession();
+                        ? sequence.getAccession().substring(0, sequence.getAccession().indexOf(" ")) : sequence.getAccession();
 
                 String refSeqVersionedAccession = sequence.getVersion().trim().contains(" ")
-                        ? sequence.getVersion().substring(0, sequence.getVersion().indexOf(" "))
-                        : sequence.getVersion();
+                        ? sequence.getVersion().substring(0, sequence.getVersion().indexOf(" ")) : sequence.getVersion();
 
                 List<Identifier> rnaNucleotideAccessionIdentifierList = hearsayDAOBeanService.getIdentifierDAO()
                         .findByExample(new Identifier("www.ncbi.nlm.nih.gov/nuccore", refSeqVersionedAccession));
@@ -442,14 +427,13 @@ public class PullAlignmentsRunnable implements Runnable {
                         .findByIdentifiers(identifierIdList);
 
                 if (CollectionUtils.isEmpty(potentialRefSeqs)) {
-                    logger.warn(
-                            "Could not find ReferenceSequence: refSeqVersionedAccession = {}, proteinAccession = {}",
+                    logger.warn("Could not find ReferenceSequence: refSeqVersionedAccession = {}, proteinAccession = {}",
                             refSeqVersionedAccession, proteinAccession);
                     return;
                 }
 
-                logger.info("Using ReferenceSequence: refSeqVersionedAccession = {}, proteinAccession = {}",
-                        refSeqVersionedAccession, proteinAccession);
+                logger.info("Using ReferenceSequence: refSeqVersionedAccession = {}, proteinAccession = {}", refSeqVersionedAccession,
+                        proteinAccession);
 
                 final StrandType strandType = potentialRefSeqs.get(0).getStrandType();
 
@@ -568,8 +552,7 @@ public class PullAlignmentsRunnable implements Runnable {
                         String[] exonEndsSplit = exonEnds.split(",");
 
                         for (int i = 0; i < Integer.valueOf(exonCount); i++) {
-                            Location genomicLocation = new Location(Integer.valueOf(exonStartsSplit[i]),
-                                    Integer.valueOf(exonEndsSplit[i]));
+                            Location genomicLocation = new Location(Integer.valueOf(exonStartsSplit[i]), Integer.valueOf(exonEndsSplit[i]));
                             logger.debug(genomicLocation.toString());
                             genomicLocationList.add(genomicLocation);
                         }
@@ -578,8 +561,7 @@ public class PullAlignmentsRunnable implements Runnable {
                 }
 
                 if (regions.size() != genomicLocationList.size()) {
-                    logger.warn("regions.size() = {}, genomicLocationList.size() = {}", regions.size(),
-                            genomicLocationList.size());
+                    logger.warn("regions.size() = {}, genomicLocationList.size() = {}", regions.size(), genomicLocationList.size());
                     return;
                 }
 

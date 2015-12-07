@@ -98,8 +98,7 @@ public class FTPUtil {
                 // File tmpFile = new File("/tmp", ftpFile.getName());
                 if (!tmpFile.exists()) {
                     logger.info("downloading: {}", ftpFile.getName());
-                    try (FileOutputStream fos = new FileOutputStream(tmpFile);
-                            BufferedOutputStream os = new BufferedOutputStream(fos)) {
+                    try (FileOutputStream fos = new FileOutputStream(tmpFile); BufferedOutputStream os = new BufferedOutputStream(fos)) {
                         ftpClient.retrieveFile(String.format("%s/%s", path, ftpFile.getName()), fos);
                         fos.flush();
                     } catch (Exception e) {

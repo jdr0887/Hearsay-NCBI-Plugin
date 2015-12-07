@@ -120,20 +120,19 @@ public class AddAlignmentUTRsRunnable implements Runnable {
 
                     if (strandType.equals(StrandType.MINUS)) {
 
-                        if (transcriptRange.contains(proteinLocation.getStart())
-                                && transcriptRange.contains(proteinLocation.getStop())) {
+                        if (transcriptRange.contains(proteinLocation.getStart()) && transcriptRange.contains(proteinLocation.getStop())) {
 
                             transcriptLocation.setStop(proteinLocation.getStart() - 1);
                             regionLocation.setStop(regionStop - transcriptLocation.diff());
 
-                            Region newRegion = createRegion(alignment, proteinLocation.getStart(),
-                                    proteinLocation.getStop(), regionLocation.getStop() + 1, regionLocation.getStop()
-                                            + 1 + (proteinLocation.getStop() - proteinLocation.getStart()));
+                            Region newRegion = createRegion(alignment, proteinLocation.getStart(), proteinLocation.getStop(),
+                                    regionLocation.getStop() + 1,
+                                    regionLocation.getStop() + 1 + (proteinLocation.getStop() - proteinLocation.getStart()));
                             utrRegionList.add(newRegion);
 
                             newRegion = createRegion(alignment, proteinLocation.getStop() + 1, transcriptStop,
-                                    newRegion.getRegionLocation().getStop() + 1, newRegion.getRegionLocation().getStop()
-                                            + 1 + (transcriptStop - proteinLocation.getStop() - 1));
+                                    newRegion.getRegionLocation().getStop() + 1,
+                                    newRegion.getRegionLocation().getStop() + 1 + (transcriptStop - proteinLocation.getStop() - 1));
                             utrRegionList.add(newRegion);
 
                         } else if (transcriptRange.contains(proteinLocation.getStart())) {
@@ -162,20 +161,19 @@ public class AddAlignmentUTRsRunnable implements Runnable {
 
                     if (strandType.equals(StrandType.PLUS)) {
 
-                        if (transcriptRange.contains(proteinLocation.getStart())
-                                && transcriptRange.contains(proteinLocation.getStop())) {
+                        if (transcriptRange.contains(proteinLocation.getStart()) && transcriptRange.contains(proteinLocation.getStop())) {
 
                             transcriptLocation.setStop(proteinLocation.getStart() - 1);
                             regionLocation.setStop(regionStart + transcriptLocation.diff());
 
-                            Region newRegion = createRegion(alignment, proteinLocation.getStart(),
-                                    proteinLocation.getStop(), regionLocation.getStop() + 1, regionLocation.getStop()
-                                            + 1 + (proteinLocation.getStop() - proteinLocation.getStart()));
+                            Region newRegion = createRegion(alignment, proteinLocation.getStart(), proteinLocation.getStop(),
+                                    regionLocation.getStop() + 1,
+                                    regionLocation.getStop() + 1 + (proteinLocation.getStop() - proteinLocation.getStart()));
                             utrRegionList.add(newRegion);
 
                             newRegion = createRegion(alignment, proteinLocation.getStop() + 1, transcriptStop,
-                                    newRegion.getRegionLocation().getStop() + 1, newRegion.getRegionLocation().getStop()
-                                            + 1 + (transcriptStop - proteinLocation.getStop() - 1));
+                                    newRegion.getRegionLocation().getStop() + 1,
+                                    newRegion.getRegionLocation().getStop() + 1 + (transcriptStop - proteinLocation.getStop() - 1));
                             utrRegionList.add(newRegion);
 
                         } else if (transcriptRange.contains(proteinLocation.getStart())) {
@@ -222,23 +220,19 @@ public class AddAlignmentUTRsRunnable implements Runnable {
                         continue;
                     }
 
-                    if (strandType.equals(StrandType.PLUS)
-                            && transcriptLocation.getStop() < proteinLocation.getStart()) {
+                    if (strandType.equals(StrandType.PLUS) && transcriptLocation.getStop() < proteinLocation.getStart()) {
                         region.setRegionType(RegionType.UTR5);
                     }
 
-                    if (strandType.equals(StrandType.PLUS)
-                            && transcriptLocation.getStop() > proteinLocation.getStop()) {
+                    if (strandType.equals(StrandType.PLUS) && transcriptLocation.getStop() > proteinLocation.getStop()) {
                         region.setRegionType(RegionType.UTR3);
                     }
 
-                    if (strandType.equals(StrandType.MINUS)
-                            && transcriptLocation.getStop() < proteinLocation.getStart()) {
+                    if (strandType.equals(StrandType.MINUS) && transcriptLocation.getStop() < proteinLocation.getStart()) {
                         region.setRegionType(RegionType.UTR5);
                     }
 
-                    if (strandType.equals(StrandType.MINUS)
-                            && transcriptLocation.getStop() > proteinLocation.getStop()) {
+                    if (strandType.equals(StrandType.MINUS) && transcriptLocation.getStop() > proteinLocation.getStop()) {
                         region.setRegionType(RegionType.UTR3);
                     }
 
@@ -294,8 +288,7 @@ public class AddAlignmentUTRsRunnable implements Runnable {
                     region.setId(hearsayDAOBeanService.getRegionDAO().save(region));
                     region.setAlignment(alignment);
 
-                    Location regionLocation = new Location(previousRegionLocation.getStop() + 1,
-                            currentRegionLocation.getStart() - 1);
+                    Location regionLocation = new Location(previousRegionLocation.getStop() + 1, currentRegionLocation.getStart() - 1);
                     regionLocation.setId(hearsayDAOBeanService.getLocationDAO().save(regionLocation));
                     region.setRegionLocation(regionLocation);
                     hearsayDAOBeanService.getRegionDAO().save(region);
@@ -328,8 +321,7 @@ public class AddAlignmentUTRsRunnable implements Runnable {
                         logger.debug("{}, {}", region.toString(), regionLocation.toString());
                         continue;
                     }
-                    logger.debug("{}, {}, {}", region.toString(), regionLocation.toString(),
-                            transcriptLocation.toString());
+                    logger.debug("{}, {}, {}", region.toString(), regionLocation.toString(), transcriptLocation.toString());
                 }
 
                 alignment.setRegions(regionList);
@@ -343,8 +335,8 @@ public class AddAlignmentUTRsRunnable implements Runnable {
 
         }
 
-        private Region createRegion(Alignment alignment, Integer transcriptStart, Integer transcriptStop,
-                Integer genomicStart, Integer genomicStop) throws HearsayDAOException {
+        private Region createRegion(Alignment alignment, Integer transcriptStart, Integer transcriptStop, Integer genomicStart,
+                Integer genomicStop) throws HearsayDAOException {
             Region newRegion = new Region(RegionType.EXON);
             newRegion.setId(hearsayDAOBeanService.getRegionDAO().save(newRegion));
             newRegion.setAlignment(alignment);
