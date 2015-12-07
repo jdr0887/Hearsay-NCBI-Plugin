@@ -23,16 +23,15 @@ public class DownloadTest {
 
         GBFFManager gbffMgr = GBFFManager.getInstance(1, true);
 
-        List<GBFFFilter> filters = Arrays.asList(new GBFFFilter[] {
-                new GBFFSequenceAccessionPrefixFilter(Arrays.asList(new String[] { "NM_", "NR_" })),
-                new GBFFSourceOrganismNameFilter("Homo sapiens"),
-                new GBFFFeatureSourceOrganismNameFilter("Homo sapiens"), new GBFFFeatureTypeNameFilter("CDS"),
-                new GBFFFeatureTypeNameFilter("source") });
+        List<GBFFFilter> filters = Arrays
+                .asList(new GBFFFilter[] { new GBFFSequenceAccessionPrefixFilter(Arrays.asList(new String[] { "NM_", "NR_" })),
+                        new GBFFSourceOrganismNameFilter("Homo sapiens"), new GBFFFeatureSourceOrganismNameFilter("Homo sapiens"),
+                        new GBFFFeatureTypeNameFilter("CDS"), new GBFFFeatureTypeNameFilter("source") });
 
         GBFFAndFilter gbffFilter = new GBFFAndFilter(filters);
 
         List<File> fileList = FTPUtil.ncbiDownloadBySuffix("/refseq/H_sapiens/mRNA_Prot", "rna.gbff.gz");
-        
+
         List<Sequence> sequenceList = new ArrayList<Sequence>();
         for (File f : fileList) {
             List<Sequence> tmpList = gbffMgr.deserialize(gbffFilter, f);
@@ -47,14 +46,13 @@ public class DownloadTest {
 
         GBFFManager gbffMgr = GBFFManager.getInstance(8, true);
 
-        List<GBFFFilter> filters = Arrays.asList(new GBFFFilter[] {
-                new GBFFSequenceAccessionPrefixFilter(Arrays.asList(new String[] { "NM_", "NR_" })),
-                new GBFFSourceOrganismNameFilter("Homo sapiens"),
-                new GBFFFeatureSourceOrganismNameFilter("Homo sapiens"), new GBFFFeatureTypeNameFilter("CDS"),
-                new GBFFFeatureTypeNameFilter("source") });
+        List<GBFFFilter> filters = Arrays
+                .asList(new GBFFFilter[] { new GBFFSequenceAccessionPrefixFilter(Arrays.asList(new String[] { "NM_", "NR_" })),
+                        new GBFFSourceOrganismNameFilter("Homo sapiens"), new GBFFFeatureSourceOrganismNameFilter("Homo sapiens"),
+                        new GBFFFeatureTypeNameFilter("CDS"), new GBFFFeatureTypeNameFilter("source") });
 
         GBFFAndFilter gbffFilter = new GBFFAndFilter(filters);
-        
+
         List<File> fileList = FTPUtil.ncbiDownloadBySuffix("/refseq/release/vertebrate_mammalian", "rna.gbff.gz");
         List<Sequence> sequenceList = new ArrayList<Sequence>();
         for (File f : fileList) {

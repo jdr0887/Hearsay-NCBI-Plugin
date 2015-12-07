@@ -23,8 +23,7 @@ public class ParseClinVarTest {
             File clinvarDownload = FTPUtil.ncbiDownload("/pub/clinvar/xml", "ClinVarFullRelease_00-latest.xml.gz");
             JAXBContext jc = JAXBContext.newInstance(ReleaseType.class);
             Unmarshaller u = jc.createUnmarshaller();
-            ReleaseType releaseType = (ReleaseType) u.unmarshal(new GZIPInputStream(
-                    new FileInputStream(clinvarDownload)));
+            ReleaseType releaseType = (ReleaseType) u.unmarshal(new GZIPInputStream(new FileInputStream(clinvarDownload)));
             List<PublicSetType> publicSetType = releaseType.getClinVarSet();
             int count = 0;
             for (PublicSetType pst : publicSetType) {
