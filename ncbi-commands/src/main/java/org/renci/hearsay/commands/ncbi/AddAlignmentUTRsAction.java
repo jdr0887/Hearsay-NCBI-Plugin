@@ -33,6 +33,4 @@ public class AddAlignmentUTRsAction implements Action {
         return null;
     }
 
-
-
 }
