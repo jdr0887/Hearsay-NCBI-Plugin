@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -73,14 +74,14 @@ public class AddAlignmentUTRsRunnable implements Runnable {
             try {
 
                 List<Region> regionList = alignment.getRegions();
-                List<ReferenceSequence> referenceSequenceList = alignment.getReferenceSequences();
+                Set<ReferenceSequence> referenceSequenceSet = alignment.getReferenceSequences();
 
-                if (CollectionUtils.isEmpty(referenceSequenceList)) {
+                if (CollectionUtils.isEmpty(referenceSequenceSet)) {
                     logger.error("Could not find ReferenceSequence for Alignment: {}", alignment.toString());
                     return;
                 }
 
-                StrandType strandType = referenceSequenceList.get(0).getStrandType();
+                StrandType strandType = referenceSequenceSet.iterator().next().getStrandType();
                 List<Region> utrRegionList = new ArrayList<Region>();
 
                 final Location proteinLocation = alignment.getProteinLocation();
