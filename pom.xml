@@ -36,6 +36,11 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
+	<groupId>org.renci.hearsay</groupId>
+	<artifactId>hearsay-commands</artifactId>
+	<version>${hearsay.version}</version>
+      </dependency>          
+      <dependency>
         <groupId>org.renci.gene2accession</groupId>
 	<artifactId>gene2accession-parser</artifactId>
 	<version>${gene2accession.parser.version}</version>
