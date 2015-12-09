@@ -10,7 +10,6 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.junit.Test;
 import org.renci.gene2accession.G2AFilter;
 import org.renci.gene2accession.G2AParser;
@@ -22,8 +21,6 @@ import org.renci.gene2accession.filter.G2ARNANucleotideAccessionVersionPrefixFil
 import org.renci.gene2accession.filter.G2ATaxonIdFilter;
 import org.renci.gene2accession.model.Record;
 import org.renci.hearsay.commands.ncbi.util.FTPUtil;
-import org.renci.hearsay.dao.model.GenomeReference;
-import org.renci.hearsay.dao.model.Identifier;
 
 public class Scratch {
 
