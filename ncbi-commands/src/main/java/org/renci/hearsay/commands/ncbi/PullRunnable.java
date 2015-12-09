@@ -7,6 +7,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.renci.hearsay.commands.AddAlignmentUTRsRunnable;
 import org.renci.hearsay.dao.HearsayDAOBeanService;
 import org.renci.hearsay.dao.model.Chromosome;
 import org.slf4j.Logger;
