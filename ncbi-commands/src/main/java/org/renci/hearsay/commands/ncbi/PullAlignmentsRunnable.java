@@ -8,7 +8,6 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
@@ -249,8 +248,6 @@ public class PullAlignmentsRunnable implements Runnable {
                         continue;
                     }
 
-                    Region region = new Region(RegionType.EXON);
-                    region.setAlignment(alignment);
                     String range = feature.getLocation();
                     String start = null;
                     String stop = null;
@@ -265,29 +262,26 @@ public class PullAlignmentsRunnable implements Runnable {
                     }
 
                     if (NumberUtils.isNumber(start) && NumberUtils.isNumber(stop)) {
+                        Region region = new Region(RegionType.EXON);
+                        region.setAlignment(alignment);
+                        region.setId(hearsayDAOBeanService.getRegionDAO().save(region));
                         Location transcriptLocation = new Location(Integer.valueOf(start), Integer.valueOf(stop));
                         transcriptLocation.setId(hearsayDAOBeanService.getLocationDAO().save(transcriptLocation));
                         region.setTranscriptLocation(transcriptLocation);
+                        hearsayDAOBeanService.getRegionDAO().save(region);
+                        alignment.getRegions().add(region);
                     }
-
-                    region.setId(hearsayDAOBeanService.getRegionDAO().save(region));
-                    alignment.getRegions().add(region);
                 }
 
                 hearsayDAOBeanService.getAlignmentDAO().save(alignment);
 
                 List<Region> regions = alignment.getRegions();
                 if (CollectionUtils.isNotEmpty(regions)) {
-                    Collections.sort(regions, new Comparator<Region>() {
-                        @Override
-                        public int compare(Region r1, Region r2) {
-                            if (strandType.equals(StrandType.MINUS)) {
-                                return r2.getTranscriptLocation().getStart().compareTo(r1.getTranscriptLocation().getStart());
-                            } else {
-                                return r1.getTranscriptLocation().getStart().compareTo(r2.getTranscriptLocation().getStart());
-                            }
-                        }
-                    });
+                    if (strandType.equals(StrandType.MINUS)) {
+                        regions.sort((a, b) -> b.getTranscriptLocation().getStart().compareTo(a.getTranscriptLocation().getStart()));
+                    } else {
+                        regions.sort((a, b) -> a.getTranscriptLocation().getStart().compareTo(b.getTranscriptLocation().getStart()));
+                    }
 
                     String refSeqGenomicAccession = null;
                     for (Identifier identifier : referenceSequences.get(0).getIdentifiers()) {
@@ -328,8 +322,8 @@ public class PullAlignmentsRunnable implements Runnable {
                                 if (strandType.equals(StrandType.MINUS)) {
                                     if (region.getTranscriptLocation().getStart().equals(stop)
                                             && region.getTranscriptLocation().getStop().equals(start)) {
-                                        Location genomicLocation = new Location(Integer.valueOf(genomicStart),
-                                                Integer.valueOf(genomicStop));
+                                        Location genomicLocation = new Location(Integer.valueOf(genomicStop),
+                                                Integer.valueOf(genomicStart));
                                         genomicLocation.setId(hearsayDAOBeanService.getLocationDAO().save(genomicLocation));
                                         region.setRegionLocation(genomicLocation);
                                         hearsayDAOBeanService.getRegionDAO().save(region);
