@@ -63,7 +63,7 @@ public class Scratch {
     @Test
     public void testRefseqAssemblySummaryFile() throws IOException {
 
-        try (BufferedReader br = new BufferedReader(new FileReader(new File("/tmp", "assembly_summary_refseq.txt")))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(new File("/tmp", "assembly_summary_historical.txt")))) {
             // # assembly_accession bioproject biosample wgs_master refseq_category taxid species_taxid
             // organism_name infraspecific_name isolate version_status assembly_level release_type genome_rep
             // seq_rel_date asm_name submitter gbrs_paired_asm paired_asm_comp ftp_path
@@ -99,10 +99,12 @@ public class Scratch {
                     String gbrsPairedASM = scanner.next();
                     String pairedASMComp = scanner.next();
                     String ftpPath = scanner.next();
-
+                    System.out.println(assemblyAccession);
                 }
             }
 
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
