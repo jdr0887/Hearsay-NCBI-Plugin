@@ -88,10 +88,9 @@ public class PullGenesRunnable implements Runnable {
                     gene.setSymbol(symbol);
                     gene.setDescription(description);
                     gene.setId(hearsayDAOBeanService.getGeneDAO().save(gene));
-                    logger.info(gene.toString());
+                    logger.debug(gene.toString());
 
                     gene.getIdentifiers().add(identifier);
-                    hearsayDAOBeanService.getGeneDAO().save(gene);
 
                     if (chromosome.indexOf("|") != -1) {
                         String[] split = chromosome.split("|");
@@ -107,7 +106,6 @@ public class PullGenesRunnable implements Runnable {
                             gene.getChromosomes().addAll(potentialChromosomeList);
                         }
                     }
-                    hearsayDAOBeanService.getGeneDAO().save(gene);
 
                     if (!synonyms.trim().equals("-")) {
                         StringTokenizer geneSymbolStringTokenizer = new StringTokenizer(synonyms, "|");
@@ -121,8 +119,8 @@ public class PullGenesRunnable implements Runnable {
                             logger.debug(geneSymbol.toString());
                             gene.getAliases().add(gs);
                         }
-                        hearsayDAOBeanService.getGeneDAO().save(gene);
                     }
+                    hearsayDAOBeanService.getGeneDAO().save(gene);
 
                 }
 
