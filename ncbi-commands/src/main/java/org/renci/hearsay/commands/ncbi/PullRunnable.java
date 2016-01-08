@@ -49,6 +49,7 @@ public class PullRunnable implements Runnable {
             e.printStackTrace();
         }
         long endPersistChromosomeTime = System.currentTimeMillis();
+        logger.info("duration to persist Chromosomes: {} seconds", (endPersistChromosomeTime - startPersistChromosomeTime) / 1000);
 
         // persist genes & genome references
         long startPersistGenesAndGenomeReferencesTime = System.currentTimeMillis();
@@ -67,6 +68,8 @@ public class PullRunnable implements Runnable {
             e.printStackTrace();
         }
         long endPersistGenesAndGenomeReferencesTime = System.currentTimeMillis();
+        logger.info("duration to persist Genes & GenomeReferences: {} seconds",
+                (endPersistGenesAndGenomeReferencesTime - startPersistGenesAndGenomeReferencesTime) / 1000);
 
         // persist reference sequences
         long startPersistReferenceSequencesTime = System.currentTimeMillis();
@@ -80,7 +83,9 @@ public class PullRunnable implements Runnable {
             e.printStackTrace();
         }
         long endPersistReferenceSequencesTime = System.currentTimeMillis();
-
+        logger.info("duration to persist ReferenceSequences: {} seconds",
+                (endPersistReferenceSequencesTime - startPersistReferenceSequencesTime) / 1000);
+        
         // persist alignments
         long startPersistAlignmentsTime = System.currentTimeMillis();
         try {
@@ -93,31 +98,23 @@ public class PullRunnable implements Runnable {
             e.printStackTrace();
         }
         long endPersistAlignmentsTime = System.currentTimeMillis();
-
-        // add alignment UTRs
-        long startPersistAlignmentUTRsTime = System.currentTimeMillis();
-        try {
-            ExecutorService es = Executors.newSingleThreadExecutor();
-            AddAlignmentUTRsRunnable addAlignmentUTRsRunnable = new AddAlignmentUTRsRunnable(hearsayDAOBeanService);
-            es.submit(addAlignmentUTRsRunnable);
-            es.shutdown();
-            es.awaitTermination(2L, TimeUnit.HOURS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        long endPersistAlignmentUTRsTime = System.currentTimeMillis();
-
-        logger.info("duration to persist Chromosomes: {} seconds", (endPersistChromosomeTime - startPersistChromosomeTime) / 1000);
-
-        logger.info("duration to persist Genes & GenomeReferences: {} seconds",
-                (endPersistGenesAndGenomeReferencesTime - startPersistGenesAndGenomeReferencesTime) / 1000);
-
-        logger.info("duration to persist ReferenceSequences: {} seconds",
-                (endPersistReferenceSequencesTime - startPersistReferenceSequencesTime) / 1000);
-
         logger.info("duration to persist Alignments: {} seconds", (endPersistAlignmentsTime - startPersistAlignmentsTime) / 1000);
 
-        logger.info("duration to persist Alignment UTRs: {} seconds", (endPersistAlignmentUTRsTime - startPersistAlignmentUTRsTime) / 1000);
+        // add alignment UTRs
+        // long startPersistAlignmentUTRsTime = System.currentTimeMillis();
+        // try {
+        // ExecutorService es = Executors.newSingleThreadExecutor();
+        // AddAlignmentUTRsRunnable addAlignmentUTRsRunnable = new AddAlignmentUTRsRunnable(hearsayDAOBeanService);
+        // es.submit(addAlignmentUTRsRunnable);
+        // es.shutdown();
+        // es.awaitTermination(2L, TimeUnit.HOURS);
+        // } catch (InterruptedException e) {
+        // e.printStackTrace();
+        // }
+        // long endPersistAlignmentUTRsTime = System.currentTimeMillis();
+
+        // logger.info("duration to persist Alignment UTRs: {} seconds", (endPersistAlignmentUTRsTime -
+        // startPersistAlignmentUTRsTime) / 1000);
 
     }
 
