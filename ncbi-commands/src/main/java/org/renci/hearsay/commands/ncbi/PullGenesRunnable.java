@@ -1,5 +1,7 @@
 package org.renci.hearsay.commands.ncbi;
 
+import static org.renci.hearsay.commands.ncbi.Constants.IDENTIFIER_KEY_GENE;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -80,7 +82,7 @@ public class PullGenesRunnable implements Runnable {
                         continue;
                     }
 
-                    Identifier identifier = new Identifier("www.ncbi.nlm.nih.gov/gene", geneId);
+                    Identifier identifier = new Identifier(IDENTIFIER_KEY_GENE, geneId);
                     identifier.setId(hearsayDAOBeanService.getIdentifierDAO().save(identifier));
                     logger.debug(identifier.toString());
 
