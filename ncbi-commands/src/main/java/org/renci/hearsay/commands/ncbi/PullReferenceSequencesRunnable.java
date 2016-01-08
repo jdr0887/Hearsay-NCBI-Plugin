@@ -1,5 +1,9 @@
 package org.renci.hearsay.commands.ncbi;
 
+import static org.renci.hearsay.commands.ncbi.Constants.IDENTIFIER_KEY_GENOME;
+import static org.renci.hearsay.commands.ncbi.Constants.IDENTIFIER_KEY_NUCCORE;
+import static org.renci.hearsay.commands.ncbi.Constants.IDENTIFIER_KEY_PROTEIN;
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
@@ -69,7 +73,7 @@ public class PullReferenceSequencesRunnable implements Runnable {
                         try {
                             // set nucleotide identifier
                             String versionedRefSeqAccession = record.getRNANucleotideAccessionVersion();
-                            Identifier identifier = new Identifier("www.ncbi.nlm.nih.gov/nuccore", versionedRefSeqAccession);
+                            Identifier identifier = new Identifier(IDENTIFIER_KEY_NUCCORE, versionedRefSeqAccession);
                             List<Identifier> possibleIdentifiers = hearsayDAOBeanService.getIdentifierDAO().findByExample(identifier);
                             if (CollectionUtils.isEmpty(possibleIdentifiers)) {
                                 hearsayDAOBeanService.getIdentifierDAO().save(identifier);
@@ -89,7 +93,7 @@ public class PullReferenceSequencesRunnable implements Runnable {
                     for (Record record : recordList) {
                         try {
                             String versionedProteinAccession = record.getProteinAccessionVersion();
-                            Identifier identifier = new Identifier("www.ncbi.nlm.nih.gov/protein", versionedProteinAccession);
+                            Identifier identifier = new Identifier(IDENTIFIER_KEY_PROTEIN, versionedProteinAccession);
                             List<Identifier> possibleIdentifiers = hearsayDAOBeanService.getIdentifierDAO().findByExample(identifier);
                             if (CollectionUtils.isEmpty(possibleIdentifiers)) {
                                 hearsayDAOBeanService.getIdentifierDAO().save(identifier);
@@ -110,7 +114,7 @@ public class PullReferenceSequencesRunnable implements Runnable {
                         try {
                             // set genomic identifier
                             String versionedGenomicAccession = record.getGenomicNucleotideAccessionVersion();
-                            Identifier identifier = new Identifier("www.ncbi.nlm.nih.gov/genome", versionedGenomicAccession);
+                            Identifier identifier = new Identifier(IDENTIFIER_KEY_GENOME, versionedGenomicAccession);
                             List<Identifier> possibleIdentifiers = hearsayDAOBeanService.getIdentifierDAO().findByExample(identifier);
                             if (CollectionUtils.isEmpty(possibleIdentifiers)) {
                                 hearsayDAOBeanService.getIdentifierDAO().save(identifier);
@@ -124,7 +128,7 @@ public class PullReferenceSequencesRunnable implements Runnable {
             });
 
             es.shutdown();
-            es.awaitTermination(10L, TimeUnit.MINUTES);
+            es.awaitTermination(30L, TimeUnit.MINUTES);
 
             es = Executors.newFixedThreadPool(4);
 
@@ -172,7 +176,7 @@ public class PullReferenceSequencesRunnable implements Runnable {
 
                             // set nucleotide identifier
                             String versionedRefSeqAccession = record.getRNANucleotideAccessionVersion();
-                            Identifier identifier = new Identifier("www.ncbi.nlm.nih.gov/nuccore", versionedRefSeqAccession);
+                            Identifier identifier = new Identifier(IDENTIFIER_KEY_NUCCORE, versionedRefSeqAccession);
                             List<Identifier> possibleIdentifiers = hearsayDAOBeanService.getIdentifierDAO().findByExample(identifier);
                             if (CollectionUtils.isNotEmpty(possibleIdentifiers)) {
                                 identifier = possibleIdentifiers.get(0);
@@ -181,7 +185,7 @@ public class PullReferenceSequencesRunnable implements Runnable {
 
                             // set protein identifier
                             String versionedProteinAccession = record.getProteinAccessionVersion();
-                            identifier = new Identifier("www.ncbi.nlm.nih.gov/protein", versionedProteinAccession);
+                            identifier = new Identifier(IDENTIFIER_KEY_PROTEIN, versionedProteinAccession);
                             possibleIdentifiers = hearsayDAOBeanService.getIdentifierDAO().findByExample(identifier);
                             if (CollectionUtils.isNotEmpty(possibleIdentifiers)) {
                                 identifier = possibleIdentifiers.get(0);
@@ -190,7 +194,7 @@ public class PullReferenceSequencesRunnable implements Runnable {
 
                             // set genomic identifier
                             String versionedGenomicAccession = record.getGenomicNucleotideAccessionVersion();
-                            identifier = new Identifier("www.ncbi.nlm.nih.gov/genome", versionedGenomicAccession);
+                            identifier = new Identifier(IDENTIFIER_KEY_GENOME, versionedGenomicAccession);
                             possibleIdentifiers = hearsayDAOBeanService.getIdentifierDAO().findByExample(identifier);
                             if (CollectionUtils.isNotEmpty(possibleIdentifiers)) {
                                 identifier = possibleIdentifiers.get(0);
@@ -209,6 +213,7 @@ public class PullReferenceSequencesRunnable implements Runnable {
 
             }
             es.shutdown();
+            es.awaitTermination(1L, TimeUnit.HOURS);
 
         } catch (Exception e) {
             e.printStackTrace();
