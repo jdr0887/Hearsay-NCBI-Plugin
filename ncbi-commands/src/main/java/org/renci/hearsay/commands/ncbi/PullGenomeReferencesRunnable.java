@@ -1,5 +1,7 @@
 package org.renci.hearsay.commands.ncbi;
 
+import static org.renci.hearsay.commands.ncbi.Constants.IDENTIFIER_KEY_ASSEMBLY;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -83,8 +85,7 @@ public class PullGenomeReferencesRunnable implements Runnable {
                             continue;
                         }
 
-                        Identifier identifier = new Identifier("www.ncbi.nlm.nih.gov/assembly",
-                                getGenomeReferenceAssemblyId(assemblyAccession));
+                        Identifier identifier = new Identifier(IDENTIFIER_KEY_ASSEMBLY, getGenomeReferenceAssemblyId(assemblyAccession));
                         List<Identifier> foundIdentifierList = hearsayDAOBeanService.getIdentifierDAO().findByExample(identifier);
                         if (CollectionUtils.isNotEmpty(foundIdentifierList)) {
                             identifier = foundIdentifierList.get(0);
