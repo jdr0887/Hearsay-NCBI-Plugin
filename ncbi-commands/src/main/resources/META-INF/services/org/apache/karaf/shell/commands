@@ -1,6 +1,7 @@
 org.renci.hearsay.commands.ncbi.AddAlignmentUTRsAction
 org.renci.hearsay.commands.ncbi.PullAction
 org.renci.hearsay.commands.ncbi.PullAlignmentsAction
+org.renci.hearsay.commands.ncbi.PullFeaturesAction
 org.renci.hearsay.commands.ncbi.PullClinVarAction
 org.renci.hearsay.commands.ncbi.PullGenesAction
 org.renci.hearsay.commands.ncbi.PullGenomicReferencesAction
