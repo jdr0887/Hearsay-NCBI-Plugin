@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -76,108 +79,121 @@ public class PullFeaturesRunnable implements Runnable {
 
                 if (CollectionUtils.isEmpty(sequenceList)) {
                     logger.warn("no sequences found");
-                    return;
+                    continue;
                 }
 
                 logger.info("sequenceList.size(): {}", sequenceList.size());
 
+                ExecutorService es = Executors.newFixedThreadPool(4);
+
                 for (Sequence sequence : sequenceList) {
-                    logger.info(sequence.toString());
 
-                    List<Identifier> identifierList = new ArrayList<Identifier>();
+                    es.submit(() -> {
 
-                    // rna nucleotide accession
-                    String refSeqVersionedAccession = sequence.getVersion().trim().contains(" ")
-                            ? sequence.getVersion().substring(0, sequence.getVersion().indexOf(" ")) : sequence.getVersion();
+                        try {
+                            logger.info(sequence.toString());
 
-                    List<Identifier> rnaNucleotideAccessionIdentifierList = hearsayDAOBeanService.getIdentifierDAO()
-                            .findByExample(new Identifier(IDENTIFIER_KEY_NUCCORE, refSeqVersionedAccession));
-                    if (CollectionUtils.isNotEmpty(rnaNucleotideAccessionIdentifierList)) {
-                        identifierList.add(rnaNucleotideAccessionIdentifierList.get(0));
-                    }
+                            List<Identifier> identifierList = new ArrayList<Identifier>();
 
-                    // protein accession
-                    String proteinAccession = null;
-                    Feature firstCDSFeature = null;
-                    for (Feature feature : sequence.getFeatures()) {
-                        if (!"CDS".equals(feature.getType())) {
-                            continue;
-                        }
-                        firstCDSFeature = feature;
-                        break;
-                    }
-                    proteinAccession = firstCDSFeature.getQualifiers().get("protein_id").replace("\"", "");
+                            // rna nucleotide accession
+                            String refSeqVersionedAccession = sequence.getVersion().trim().contains(" ")
+                                    ? sequence.getVersion().substring(0, sequence.getVersion().indexOf(" ")) : sequence.getVersion();
 
-                    List<Identifier> proteinAccessionIdentifierList = hearsayDAOBeanService.getIdentifierDAO()
-                            .findByExample(new Identifier(IDENTIFIER_KEY_PROTEIN, proteinAccession));
-                    if (CollectionUtils.isNotEmpty(proteinAccessionIdentifierList)) {
-                        identifierList.add(proteinAccessionIdentifierList.get(0));
-                    }
+                            List<Identifier> rnaNucleotideAccessionIdentifierList = hearsayDAOBeanService.getIdentifierDAO()
+                                    .findByExample(new Identifier(IDENTIFIER_KEY_NUCCORE, refSeqVersionedAccession));
+                            if (CollectionUtils.isNotEmpty(rnaNucleotideAccessionIdentifierList)) {
+                                identifierList.add(rnaNucleotideAccessionIdentifierList.get(0));
+                            }
 
-                    identifierList.forEach(a -> logger.info(a.toString()));
+                            // protein accession
+                            String proteinAccession = null;
+                            Feature firstCDSFeature = null;
+                            for (Feature feature : sequence.getFeatures()) {
+                                if (!"CDS".equals(feature.getType())) {
+                                    continue;
+                                }
+                                firstCDSFeature = feature;
+                                break;
+                            }
+                            proteinAccession = firstCDSFeature.getQualifiers().get("protein_id").replace("\"", "");
 
-                    List<ReferenceSequence> potentialRefSeqs = hearsayDAOBeanService.getReferenceSequenceDAO()
-                            .findByIdentifiers(identifierList);
+                            List<Identifier> proteinAccessionIdentifierList = hearsayDAOBeanService.getIdentifierDAO()
+                                    .findByExample(new Identifier(IDENTIFIER_KEY_PROTEIN, proteinAccession));
+                            if (CollectionUtils.isNotEmpty(proteinAccessionIdentifierList)) {
+                                identifierList.add(proteinAccessionIdentifierList.get(0));
+                            }
 
-                    if (CollectionUtils.isEmpty(potentialRefSeqs)) {
-                        logger.warn("Could not find ReferenceSequence");
-                        continue;
-                    }
+                            identifierList.forEach(a -> logger.info(a.toString()));
 
-                    ReferenceSequence referenceSequence = potentialRefSeqs.get(0);
-                    logger.info(referenceSequence.toString());
+                            List<ReferenceSequence> potentialRefSeqs = hearsayDAOBeanService.getReferenceSequenceDAO()
+                                    .findByIdentifiers(identifierList);
 
-                    // add features
-                    for (Feature feature : sequence.getFeatures()) {
-                        if (!inclusionPatterns.contains(feature.getType())) {
-                            continue;
-                        }
-                        org.renci.hearsay.dao.model.Feature hearsayFeature = new org.renci.hearsay.dao.model.Feature(feature.getType());
-                        String note = feature.getQualifiers().get("note");
-                        if (StringUtils.isNotEmpty(note)) {
-                            hearsayFeature.setNote(note);
-                        }
-                        hearsayFeature.getReferenceSequences().add(referenceSequence);
+                            if (CollectionUtils.isEmpty(potentialRefSeqs)) {
+                                logger.warn("Could not find ReferenceSequence");
+                                return;
+                            }
 
-                        String location = feature.getLocation();
-                        if (NumberUtils.isNumber(location)) {
-                            Location l = new Location(Integer.valueOf(location), Integer.valueOf(location));
-                            l.setId(hearsayDAOBeanService.getLocationDAO().save(l));
-                            hearsayFeature.getLocations().add(l);
-                        } else if (location.startsWith("join") || location.startsWith("order")) {
+                            ReferenceSequence referenceSequence = potentialRefSeqs.get(0);
+                            logger.info(referenceSequence.toString());
 
-                            Matcher m = featureLocationPattern.matcher(location);
-                            m.find();
-                            try (Scanner scanner = new Scanner(m.group(2)).useDelimiter(",")) {
-                                while (scanner.hasNext()) {
-                                    String range = scanner.next();
-                                    String startValue = range.substring(0, range.indexOf(".."));
-                                    String stopValue = range.substring(range.indexOf("..") + 2, range.length());
+                            // add features
+                            for (Feature feature : sequence.getFeatures()) {
+                                if (!inclusionPatterns.contains(feature.getType())) {
+                                    continue;
+                                }
+                                org.renci.hearsay.dao.model.Feature hearsayFeature = new org.renci.hearsay.dao.model.Feature(
+                                        feature.getType());
+                                String note = feature.getQualifiers().get("note");
+                                if (StringUtils.isNotEmpty(note)) {
+                                    hearsayFeature.setNote(note);
+                                }
+
+                                String location = feature.getLocation();
+                                if (NumberUtils.isNumber(location)) {
+                                    Location l = new Location(Integer.valueOf(location), Integer.valueOf(location));
+                                    l.setId(hearsayDAOBeanService.getLocationDAO().save(l));
+                                    hearsayFeature.getLocations().add(l);
+                                } else if (location.startsWith("join") || location.startsWith("order")) {
+
+                                    Matcher m = featureLocationPattern.matcher(location);
+                                    m.find();
+                                    try (Scanner scanner = new Scanner(m.group(2)).useDelimiter(",")) {
+                                        while (scanner.hasNext()) {
+                                            String range = scanner.next();
+                                            String startValue = range.substring(0, range.indexOf(".."));
+                                            String stopValue = range.substring(range.indexOf("..") + 2, range.length());
+                                            if (NumberUtils.isNumber(startValue) && NumberUtils.isNumber(stopValue)) {
+                                                Location l = new Location(Integer.valueOf(startValue), Integer.valueOf(stopValue));
+                                                l.setId(hearsayDAOBeanService.getLocationDAO().save(l));
+                                                hearsayFeature.getLocations().add(l);
+                                            }
+                                        }
+                                        scanner.close();
+                                    }
+
+                                } else if (location.contains("..")) {
+                                    String startValue = location.substring(0, location.indexOf(".."));
+                                    String stopValue = location.substring(location.indexOf("..") + 2, location.length());
                                     if (NumberUtils.isNumber(startValue) && NumberUtils.isNumber(stopValue)) {
                                         Location l = new Location(Integer.valueOf(startValue), Integer.valueOf(stopValue));
                                         l.setId(hearsayDAOBeanService.getLocationDAO().save(l));
                                         hearsayFeature.getLocations().add(l);
                                     }
                                 }
-                                scanner.close();
-                            }
+                                hearsayFeature.getReferenceSequences().add(referenceSequence);
+                                hearsayFeature.setId(hearsayDAOBeanService.getFeatureDAO().save(hearsayFeature));
+                                logger.info(hearsayFeature.toString());
 
-                        } else if (location.contains("..")) {
-                            String startValue = location.substring(0, location.indexOf(".."));
-                            String stopValue = location.substring(location.indexOf("..") + 2, location.length());
-                            if (NumberUtils.isNumber(startValue) && NumberUtils.isNumber(stopValue)) {
-                                Location l = new Location(Integer.valueOf(startValue), Integer.valueOf(stopValue));
-                                l.setId(hearsayDAOBeanService.getLocationDAO().save(l));
-                                hearsayFeature.getLocations().add(l);
                             }
+                        } catch (Exception e) {
+                            logger.error(e.getMessage(), e);
                         }
-
-                        hearsayFeature.setId(hearsayDAOBeanService.getFeatureDAO().save(hearsayFeature));
-                        logger.info(hearsayFeature.toString());
-
-                    }
+                    });
 
                 }
+                es.shutdown();
+                es.awaitTermination(2L, TimeUnit.HOURS);
+
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);

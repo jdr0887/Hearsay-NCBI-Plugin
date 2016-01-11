@@ -171,7 +171,7 @@ public class PullAlignmentsRunnable implements Runnable {
                             // add protein info to alignment
                             Location proteinLocation = null;
                             String firstCDSFeatureLocation = firstCDSFeature.getLocation();
-                            logger.info("firstCDSFeatureLocation: {}", firstCDSFeatureLocation);
+                            logger.debug("firstCDSFeatureLocation: {}", firstCDSFeatureLocation);
                             if (firstCDSFeatureLocation.contains("join")) {
                                 Matcher m = featureLocationPattern.matcher(firstCDSFeatureLocation);
                                 m.find();
@@ -194,12 +194,12 @@ public class PullAlignmentsRunnable implements Runnable {
 
                             // add alignments
                             Alignment alignment = new Alignment();
-                            alignment.getReferenceSequences().add(referenceSequence);
                             if (proteinLocation != null) {
                                 proteinLocation.setId(hearsayDAOBeanService.getLocationDAO().save(proteinLocation));
                                 logger.info("proteinLocation: {}", proteinLocation.toString());
                                 alignment.setProteinLocation(proteinLocation);
                             }
+                            alignment.getReferenceSequences().add(referenceSequence);
                             alignment.setId(hearsayDAOBeanService.getAlignmentDAO().save(alignment));
 
                             // add exons to alignment
@@ -218,7 +218,7 @@ public class PullAlignmentsRunnable implements Runnable {
                                     if (NumberUtils.isNumber(split[0]) && NumberUtils.isNumber(split[1])) {
                                         transcriptLocation = new Location(Integer.valueOf(split[0]), Integer.valueOf(split[1]));
                                         transcriptLocation.setId(hearsayDAOBeanService.getLocationDAO().save(transcriptLocation));
-                                        logger.info("transcriptLocation: {}", transcriptLocation.toString());
+                                        logger.debug("transcriptLocation: {}", transcriptLocation.toString());
                                     }
 
                                     if (transcriptLocation == null) {
@@ -235,7 +235,7 @@ public class PullAlignmentsRunnable implements Runnable {
                                         if (transcriptLocation.getStart().equals(start) && transcriptLocation.getStop().equals(stop)) {
                                             genomicLocation = new Location(record.getStart(), record.getEnd());
                                             genomicLocation.setId(hearsayDAOBeanService.getLocationDAO().save(genomicLocation));
-                                            logger.info("genomicLocation: {}", genomicLocation.toString());
+                                            logger.debug("genomicLocation: {}", genomicLocation.toString());
                                             break;
                                         }
                                     }
