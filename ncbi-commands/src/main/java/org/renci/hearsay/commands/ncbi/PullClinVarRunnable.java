@@ -1,5 +1,7 @@
 package org.renci.hearsay.commands.ncbi;
 
+import static org.renci.hearsay.commands.ncbi.Constants.IDENTIFIER_KEY_NUCCORE;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.HashSet;
@@ -187,7 +189,7 @@ public class PullClinVarRunnable implements Runnable {
                         String referenceSequenceAccession = sa.getName().substring(0, sa.getName().indexOf(":"));
                         ReferenceSequence referenceSequence = null;
                         List<ReferenceSequence> potentialRefSeqList = hearsayDAOBeanService.getReferenceSequenceDAO()
-                                .findByIdentifierValue(referenceSequenceAccession);
+                                .findByIdentifierSystemAndValue(IDENTIFIER_KEY_NUCCORE, referenceSequenceAccession);
                         if (CollectionUtils.isNotEmpty(potentialRefSeqList)) {
                             referenceSequence = potentialRefSeqList.get(0);
                         }
