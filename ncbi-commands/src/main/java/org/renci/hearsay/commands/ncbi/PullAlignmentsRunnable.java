@@ -103,18 +103,6 @@ public class PullAlignmentsRunnable implements Runnable {
                                 return;
                             }
 
-                            List<Identifier> identifierList = new ArrayList<Identifier>();
-
-                            // rna nucleotide accession
-                            String refSeqVersionedAccession = sequence.getVersion().trim().contains(" ")
-                                    ? sequence.getVersion().substring(0, sequence.getVersion().indexOf(" ")) : sequence.getVersion();
-
-                            List<Identifier> rnaNucleotideAccessionIdentifierList = hearsayDAOBeanService.getIdentifierDAO()
-                                    .findByExample(new Identifier(IDENTIFIER_KEY_NUCCORE, refSeqVersionedAccession));
-                            if (CollectionUtils.isNotEmpty(rnaNucleotideAccessionIdentifierList)) {
-                                identifierList.add(rnaNucleotideAccessionIdentifierList.get(0));
-                            }
-
                             // protein accession
                             String proteinAccession = null;
                             Feature firstCDSFeature = null;
@@ -141,13 +129,31 @@ public class PullAlignmentsRunnable implements Runnable {
 
                             logger.info("number of exons found: {}", exonCount);
 
+                            List<Identifier> identifierList = new ArrayList<Identifier>();
+
+                            String refSeqVersionedAccession = sequence.getVersion().trim().contains(" ")
+                                    ? sequence.getVersion().substring(0, sequence.getVersion().indexOf(" ")) : sequence.getVersion();
+
+                            // find by rna nucleotide accession
+                            List<Identifier> rnaNucleotideAccessionIdentifierList = hearsayDAOBeanService.getIdentifierDAO()
+                                    .findByExample(new Identifier(IDENTIFIER_KEY_NUCCORE, refSeqVersionedAccession));
+                            if (CollectionUtils.isNotEmpty(rnaNucleotideAccessionIdentifierList)) {
+                                identifierList.add(rnaNucleotideAccessionIdentifierList.get(0));
+                            }
+
+                            // find by protein id
                             List<Identifier> proteinAccessionIdentifierList = hearsayDAOBeanService.getIdentifierDAO()
                                     .findByExample(new Identifier(IDENTIFIER_KEY_PROTEIN, proteinAccession));
                             if (CollectionUtils.isNotEmpty(proteinAccessionIdentifierList)) {
                                 identifierList.add(proteinAccessionIdentifierList.get(0));
                             }
 
-                            identifierList.forEach(a -> logger.info(a.toString()));
+                            if (identifierList.size() != 2) {
+                                logger.warn("identifierList.size() != 2");
+                                return;
+                            }
+
+                            identifierList.forEach(a -> logger.debug(a.toString()));
 
                             List<ReferenceSequence> potentialRefSeqs = hearsayDAOBeanService.getReferenceSequenceDAO()
                                     .findByIdentifiers(identifierList);
@@ -251,7 +257,6 @@ public class PullAlignmentsRunnable implements Runnable {
 
                             }
 
-                            
                         } catch (Exception e) {
                             logger.error(e.getMessage(), e);
                         }
