@@ -2,7 +2,7 @@
   <parent>
     <groupId>org.renci.hearsay</groupId>
     <artifactId>parent</artifactId>
-    <version>0.0.20-SNAPSHOT</version>
+    <version>0.0.20</version>
   </parent>
   <name>Hearsay :: Plugin :: NCBI</name>
   <modelVersion>4.0.0</modelVersion>
