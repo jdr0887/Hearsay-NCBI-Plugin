@@ -7,7 +7,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.renci.hearsay.commands.AddAlignmentUTRsRunnable;
 import org.renci.hearsay.dao.HearsayDAOBeanService;
 import org.renci.hearsay.dao.model.Chromosome;
 import org.slf4j.Logger;
@@ -49,7 +48,6 @@ public class PullRunnable implements Runnable {
             e.printStackTrace();
         }
         long endPersistChromosomeTime = System.currentTimeMillis();
-        logger.info("duration to persist Chromosomes: {} seconds", (endPersistChromosomeTime - startPersistChromosomeTime) / 1000);
 
         // persist genes & genome references
         long startPersistGenesAndGenomeReferencesTime = System.currentTimeMillis();
@@ -68,8 +66,6 @@ public class PullRunnable implements Runnable {
             e.printStackTrace();
         }
         long endPersistGenesAndGenomeReferencesTime = System.currentTimeMillis();
-        logger.info("duration to persist Genes & GenomeReferences: {} seconds",
-                (endPersistGenesAndGenomeReferencesTime - startPersistGenesAndGenomeReferencesTime) / 1000);
 
         // persist reference sequences
         long startPersistReferenceSequencesTime = System.currentTimeMillis();
@@ -78,14 +74,12 @@ public class PullRunnable implements Runnable {
             PullReferenceSequencesRunnable pullReferenceSequencesRunnable = new PullReferenceSequencesRunnable(hearsayDAOBeanService);
             es.submit(pullReferenceSequencesRunnable);
             es.shutdown();
-            es.awaitTermination(2L, TimeUnit.HOURS);
+            es.awaitTermination(4L, TimeUnit.HOURS);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         long endPersistReferenceSequencesTime = System.currentTimeMillis();
-        logger.info("duration to persist ReferenceSequences: {} seconds",
-                (endPersistReferenceSequencesTime - startPersistReferenceSequencesTime) / 1000);
-        
+
         // persist alignments
         long startPersistAlignmentsTime = System.currentTimeMillis();
         try {
@@ -93,28 +87,52 @@ public class PullRunnable implements Runnable {
             PullAlignmentsRunnable pullAlignmentsRunnable = new PullAlignmentsRunnable(hearsayDAOBeanService);
             es.submit(pullAlignmentsRunnable);
             es.shutdown();
-            es.awaitTermination(6L, TimeUnit.HOURS);
+            es.awaitTermination(1L, TimeUnit.DAYS);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         long endPersistAlignmentsTime = System.currentTimeMillis();
-        logger.info("duration to persist Alignments: {} seconds", (endPersistAlignmentsTime - startPersistAlignmentsTime) / 1000);
 
-        // add alignment UTRs
-        // long startPersistAlignmentUTRsTime = System.currentTimeMillis();
-        // try {
-        // ExecutorService es = Executors.newSingleThreadExecutor();
-        // AddAlignmentUTRsRunnable addAlignmentUTRsRunnable = new AddAlignmentUTRsRunnable(hearsayDAOBeanService);
-        // es.submit(addAlignmentUTRsRunnable);
-        // es.shutdown();
-        // es.awaitTermination(2L, TimeUnit.HOURS);
-        // } catch (InterruptedException e) {
-        // e.printStackTrace();
-        // }
-        // long endPersistAlignmentUTRsTime = System.currentTimeMillis();
+        long startPersistFeaturesTime = System.currentTimeMillis();
+        try {
+            ExecutorService es = Executors.newSingleThreadExecutor();
+            PullFeaturesRunnable pullFeaturesRunnable = new PullFeaturesRunnable(hearsayDAOBeanService);
+            es.submit(pullFeaturesRunnable);
+            es.shutdown();
+            es.awaitTermination(1L, TimeUnit.DAYS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        long endPersistFeaturesTime = System.currentTimeMillis();
 
-        // logger.info("duration to persist Alignment UTRs: {} seconds", (endPersistAlignmentUTRsTime -
-        // startPersistAlignmentUTRsTime) / 1000);
+        long startAddAlignmentUTRsTime = System.currentTimeMillis();
+        try {
+            ExecutorService es = Executors.newSingleThreadExecutor();
+            AddAlignmentUTRsRunnable runnable = new AddAlignmentUTRsRunnable(hearsayDAOBeanService);
+            es.submit(runnable);
+            es.shutdown();
+            es.awaitTermination(1L, TimeUnit.DAYS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        long endAddAlignmentUTRsTime = System.currentTimeMillis();
+
+        Long chromosomeDuration = (endPersistChromosomeTime - startPersistChromosomeTime) / 1000;
+        logger.info("duration to persist Chromosomes: {} seconds", chromosomeDuration);
+        Long genesAndGenomeReferencesDuration = (endPersistGenesAndGenomeReferencesTime - startPersistGenesAndGenomeReferencesTime) / 1000;
+        logger.info("duration to persist Genes & GenomeReferences: {} seconds", genesAndGenomeReferencesDuration);
+        Long referencesSequencesDuration = (endPersistReferenceSequencesTime - startPersistReferenceSequencesTime) / 1000;
+        logger.info("duration to persist ReferenceSequences: {} seconds", referencesSequencesDuration);
+        Long alignmentsDuration = (endPersistAlignmentsTime - startPersistAlignmentsTime) / 1000;
+        logger.info("duration to persist Alignments: {} seconds", alignmentsDuration);
+        Long featuresDuration = (endPersistFeaturesTime - startPersistFeaturesTime) / 1000;
+        logger.info("duration to persist Features: {} seconds", featuresDuration);
+        Long addAlignmentUTRsDuration = (endAddAlignmentUTRsTime - startAddAlignmentUTRsTime) / 1000;
+        logger.info("duration to persist Alignment UTRs: {} seconds", addAlignmentUTRsDuration);
+
+        Long totalDuration = (chromosomeDuration + genesAndGenomeReferencesDuration + referencesSequencesDuration + alignmentsDuration
+                + featuresDuration + addAlignmentUTRsDuration) / 60;
+        logger.info("Total time to pull from NCBI: {} minutes", totalDuration);
 
     }
 
