@@ -89,24 +89,23 @@ public class AddAlignmentUTRsRunnable implements Runnable {
                                 return 0;
                             });
 
-                            if (strandType.equals(StrandType.MINUS)) {
+                            for (Region region : regionList) {
+                                Location transcriptLocation = region.getTranscriptLocation();
+                                if (transcriptLocation == null) {
+                                    continue;
+                                }
+                                int transcriptStart = transcriptLocation.getStart();
+                                int transcriptStop = transcriptLocation.getStop();
+                                Range<Integer> transcriptRange = transcriptLocation.toRange();
 
-                                for (Region region : regionList) {
-                                    Location transcriptLocation = region.getTranscriptLocation();
-                                    if (transcriptLocation == null) {
-                                        continue;
-                                    }
-                                    int transcriptStart = transcriptLocation.getStart();
-                                    int transcriptStop = transcriptLocation.getStop();
-                                    Range<Integer> transcriptRange = transcriptLocation.toRange();
+                                Location regionLocation = region.getRegionLocation();
+                                if (regionLocation == null) {
+                                    continue;
+                                }
+                                int regionStart = regionLocation.getStart();
+                                int regionStop = regionLocation.getStop();
 
-                                    Location regionLocation = region.getRegionLocation();
-                                    if (regionLocation == null) {
-                                        continue;
-                                    }
-                                    int regionStart = regionLocation.getStart();
-                                    int regionStop = regionLocation.getStop();
-
+                                if (strandType.equals(StrandType.MINUS)) {
                                     if (transcriptRange.contains(proteinLocation.getStart())
                                             && transcriptRange.contains(proteinLocation.getStop())) {
 
@@ -143,25 +142,8 @@ public class AddAlignmentUTRsRunnable implements Runnable {
                                         utrRegionList.add(newRegion);
 
                                     }
-                                    hearsayDAOBeanService.getLocationDAO().save(transcriptLocation);
-                                    hearsayDAOBeanService.getLocationDAO().save(regionLocation);
 
-                                }
-
-                            } else {
-                                for (Region region : regionList) {
-                                    Location transcriptLocation = region.getTranscriptLocation();
-                                    if (transcriptLocation == null) {
-                                        continue;
-                                    }
-                                    int transcriptStart = transcriptLocation.getStart();
-                                    int transcriptStop = transcriptLocation.getStop();
-                                    Range<Integer> transcriptRange = transcriptLocation.toRange();
-
-                                    Location regionLocation = region.getRegionLocation();
-                                    int regionStart = regionLocation.getStart();
-                                    int regionStop = regionLocation.getStop();
-
+                                } else {
                                     if (transcriptRange.contains(proteinLocation.getStart())
                                             && transcriptRange.contains(proteinLocation.getStop())) {
 
@@ -200,10 +182,11 @@ public class AddAlignmentUTRsRunnable implements Runnable {
 
                                     }
 
-                                    hearsayDAOBeanService.getLocationDAO().save(transcriptLocation);
-                                    hearsayDAOBeanService.getLocationDAO().save(regionLocation);
-
                                 }
+
+                                hearsayDAOBeanService.getLocationDAO().save(transcriptLocation);
+                                hearsayDAOBeanService.getLocationDAO().save(regionLocation);
+
                             }
 
                             regionList.addAll(utrRegionList);
