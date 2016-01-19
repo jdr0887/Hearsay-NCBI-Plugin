@@ -2,6 +2,7 @@ package org.renci.hearsay.commands.ncbi;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -70,12 +71,9 @@ public class PullRunnable implements Runnable {
         // persist reference sequences
         long startPersistReferenceSequencesTime = System.currentTimeMillis();
         try {
-            ExecutorService es = Executors.newSingleThreadExecutor();
             PullReferenceSequencesRunnable pullReferenceSequencesRunnable = new PullReferenceSequencesRunnable(hearsayDAOBeanService);
-            es.submit(pullReferenceSequencesRunnable);
-            es.shutdown();
-            es.awaitTermination(4L, TimeUnit.HOURS);
-        } catch (InterruptedException e) {
+            Executors.newSingleThreadExecutor().submit(pullReferenceSequencesRunnable).get();
+        } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
         long endPersistReferenceSequencesTime = System.currentTimeMillis();
@@ -83,36 +81,27 @@ public class PullRunnable implements Runnable {
         // persist alignments
         long startPersistAlignmentsTime = System.currentTimeMillis();
         try {
-            ExecutorService es = Executors.newSingleThreadExecutor();
             PullAlignmentsRunnable pullAlignmentsRunnable = new PullAlignmentsRunnable(hearsayDAOBeanService);
-            es.submit(pullAlignmentsRunnable);
-            es.shutdown();
-            es.awaitTermination(1L, TimeUnit.DAYS);
-        } catch (InterruptedException e) {
+            Executors.newSingleThreadExecutor().submit(pullAlignmentsRunnable).get();
+        } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
         long endPersistAlignmentsTime = System.currentTimeMillis();
 
         long startPersistFeaturesTime = System.currentTimeMillis();
         try {
-            ExecutorService es = Executors.newSingleThreadExecutor();
             PullFeaturesRunnable pullFeaturesRunnable = new PullFeaturesRunnable(hearsayDAOBeanService);
-            es.submit(pullFeaturesRunnable);
-            es.shutdown();
-            es.awaitTermination(1L, TimeUnit.DAYS);
-        } catch (InterruptedException e) {
+            Executors.newSingleThreadExecutor().submit(pullFeaturesRunnable).get();
+        } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
         long endPersistFeaturesTime = System.currentTimeMillis();
 
         long startAddAlignmentUTRsTime = System.currentTimeMillis();
         try {
-            ExecutorService es = Executors.newSingleThreadExecutor();
             AddAlignmentUTRsRunnable runnable = new AddAlignmentUTRsRunnable(hearsayDAOBeanService);
-            es.submit(runnable);
-            es.shutdown();
-            es.awaitTermination(1L, TimeUnit.DAYS);
-        } catch (InterruptedException e) {
+            Executors.newSingleThreadExecutor().submit(runnable).get();
+        } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
         long endAddAlignmentUTRsTime = System.currentTimeMillis();
