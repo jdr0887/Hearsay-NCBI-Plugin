@@ -2,7 +2,6 @@ package org.renci.hearsay.commands.ncbi;
 
 import static org.renci.hearsay.commands.ncbi.Constants.IDENTIFIER_KEY_NUCCORE;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Formatter;
 import java.util.HashSet;
@@ -12,7 +11,6 @@ import java.util.Set;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.karaf.shell.api.action.Action;
-import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Reference;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
