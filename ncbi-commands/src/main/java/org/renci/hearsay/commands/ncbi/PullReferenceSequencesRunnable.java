@@ -65,66 +65,51 @@ public class PullReferenceSequencesRunnable implements Runnable {
 
             ExecutorService es = Executors.newFixedThreadPool(3);
 
-            es.submit(new Runnable() {
-
-                @Override
-                public void run() {
-                    for (Record record : recordList) {
-                        try {
-                            // set nucleotide identifier
-                            String versionedRefSeqAccession = record.getRNANucleotideAccessionVersion();
-                            Identifier identifier = new Identifier(IDENTIFIER_KEY_NUCCORE, versionedRefSeqAccession);
-                            List<Identifier> possibleIdentifiers = hearsayDAOBeanService.getIdentifierDAO().findByExample(identifier);
-                            if (CollectionUtils.isEmpty(possibleIdentifiers)) {
-                                hearsayDAOBeanService.getIdentifierDAO().save(identifier);
-                            }
-                        } catch (HearsayDAOException e) {
-                            e.printStackTrace();
+            es.submit(() -> {
+                for (Record record : recordList) {
+                    try {
+                        // set nucleotide identifier
+                        String versionedRefSeqAccession = record.getRNANucleotideAccessionVersion();
+                        Identifier identifier = new Identifier(IDENTIFIER_KEY_NUCCORE, versionedRefSeqAccession);
+                        List<Identifier> possibleIdentifiers = hearsayDAOBeanService.getIdentifierDAO().findByExample(identifier);
+                        if (CollectionUtils.isEmpty(possibleIdentifiers)) {
+                            hearsayDAOBeanService.getIdentifierDAO().save(identifier);
                         }
+                    } catch (HearsayDAOException e) {
+                        e.printStackTrace();
                     }
                 }
-
             });
 
-            es.submit(new Runnable() {
-
-                @Override
-                public void run() {
-                    for (Record record : recordList) {
-                        try {
-                            String versionedProteinAccession = record.getProteinAccessionVersion();
-                            Identifier identifier = new Identifier(IDENTIFIER_KEY_PROTEIN, versionedProteinAccession);
-                            List<Identifier> possibleIdentifiers = hearsayDAOBeanService.getIdentifierDAO().findByExample(identifier);
-                            if (CollectionUtils.isEmpty(possibleIdentifiers)) {
-                                hearsayDAOBeanService.getIdentifierDAO().save(identifier);
-                            }
-                        } catch (HearsayDAOException e) {
-                            e.printStackTrace();
+            es.submit(() -> {
+                for (Record record : recordList) {
+                    try {
+                        String versionedProteinAccession = record.getProteinAccessionVersion();
+                        Identifier identifier = new Identifier(IDENTIFIER_KEY_PROTEIN, versionedProteinAccession);
+                        List<Identifier> possibleIdentifiers = hearsayDAOBeanService.getIdentifierDAO().findByExample(identifier);
+                        if (CollectionUtils.isEmpty(possibleIdentifiers)) {
+                            hearsayDAOBeanService.getIdentifierDAO().save(identifier);
                         }
+                    } catch (HearsayDAOException e) {
+                        e.printStackTrace();
                     }
                 }
-
             });
 
-            es.submit(new Runnable() {
-
-                @Override
-                public void run() {
-                    for (Record record : recordList) {
-                        try {
-                            // set genomic identifier
-                            String versionedGenomicAccession = record.getGenomicNucleotideAccessionVersion();
-                            Identifier identifier = new Identifier(IDENTIFIER_KEY_GENOME, versionedGenomicAccession);
-                            List<Identifier> possibleIdentifiers = hearsayDAOBeanService.getIdentifierDAO().findByExample(identifier);
-                            if (CollectionUtils.isEmpty(possibleIdentifiers)) {
-                                hearsayDAOBeanService.getIdentifierDAO().save(identifier);
-                            }
-                        } catch (HearsayDAOException e) {
-                            e.printStackTrace();
+            es.submit(() -> {
+                for (Record record : recordList) {
+                    try {
+                        // set genomic identifier
+                        String versionedGenomicAccession = record.getGenomicNucleotideAccessionVersion();
+                        Identifier identifier = new Identifier(IDENTIFIER_KEY_GENOME, versionedGenomicAccession);
+                        List<Identifier> possibleIdentifiers = hearsayDAOBeanService.getIdentifierDAO().findByExample(identifier);
+                        if (CollectionUtils.isEmpty(possibleIdentifiers)) {
+                            hearsayDAOBeanService.getIdentifierDAO().save(identifier);
                         }
+                    } catch (HearsayDAOException e) {
+                        e.printStackTrace();
                     }
                 }
-
             });
 
             es.shutdown();
@@ -212,7 +197,11 @@ public class PullReferenceSequencesRunnable implements Runnable {
             es.shutdown();
             es.awaitTermination(1L, TimeUnit.HOURS);
 
-        } catch (Exception e) {
+        } catch (
+
+        Exception e)
+
+        {
             e.printStackTrace();
         }
     }
