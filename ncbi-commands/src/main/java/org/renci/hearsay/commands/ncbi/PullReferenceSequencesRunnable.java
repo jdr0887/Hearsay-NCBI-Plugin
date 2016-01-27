@@ -134,80 +134,77 @@ public class PullReferenceSequencesRunnable implements Runnable {
 
             for (Record record : recordList) {
 
-                es.submit(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            ReferenceSequence referenceSequence = new ReferenceSequence();
-                            referenceSequence.setStrandType(
-                                    record.getOrientation().equals(OrientationType.MINUS) ? StrandType.MINUS : StrandType.PLUS);
+                es.submit(() -> {
+                    try {
+                        ReferenceSequence referenceSequence = new ReferenceSequence();
+                        referenceSequence
+                                .setStrandType(record.getOrientation().equals(OrientationType.MINUS) ? StrandType.MINUS : StrandType.PLUS);
 
-                            String prefix = record.getRNANucleotideAccessionVersion().substring(0, 3);
-                            for (ReferenceSequenceType referenceSequenceType : ReferenceSequenceType.values()) {
-                                if (referenceSequenceType.getPrefixes().contains(prefix)) {
-                                    referenceSequence.setType(referenceSequenceType);
-                                    break;
-                                }
+                        String prefix = record.getRNANucleotideAccessionVersion().substring(0, 3);
+                        for (ReferenceSequenceType referenceSequenceType : ReferenceSequenceType.values()) {
+                            if (referenceSequenceType.getPrefixes().contains(prefix)) {
+                                referenceSequence.setType(referenceSequenceType);
+                                break;
                             }
-
-                            Location genomicLocation = new Location(record.getGenomicStartPosition(), record.getGenomicEndPosition());
-                            genomicLocation.setId(hearsayDAOBeanService.getLocationDAO().save(genomicLocation));
-                            referenceSequence.setGenomicLocation(genomicLocation);
-
-                            referenceSequence.setId(hearsayDAOBeanService.getReferenceSequenceDAO().save(referenceSequence));
-
-                            // set Gene
-                            Gene exampleGene = new Gene();
-                            exampleGene.setSymbol(record.getSymbol());
-                            List<Gene> potentialGenes = hearsayDAOBeanService.getGeneDAO().findByExample(exampleGene);
-                            if (CollectionUtils.isNotEmpty(potentialGenes)) {
-                                referenceSequence.setGene(potentialGenes.get(0));
-                            }
-
-                            // set GenomeReference
-                            GenomeReference exampleGenomeReference = new GenomeReference();
-                            exampleGenomeReference
-                                    .setName(record.getAssembly().replace("Reference", "").replace("Primary Assembly", "").trim());
-                            List<GenomeReference> potentialGenomeReferences = hearsayDAOBeanService.getGenomeReferenceDAO()
-                                    .findByExample(exampleGenomeReference);
-                            if (CollectionUtils.isNotEmpty(potentialGenomeReferences)) {
-                                referenceSequence.setGenomeReference(potentialGenomeReferences.get(0));
-                            }
-
-                            // set nucleotide identifier
-                            String versionedRefSeqAccession = record.getRNANucleotideAccessionVersion();
-                            Identifier identifier = new Identifier(IDENTIFIER_KEY_NUCCORE, versionedRefSeqAccession);
-                            List<Identifier> possibleIdentifiers = hearsayDAOBeanService.getIdentifierDAO().findByExample(identifier);
-                            if (CollectionUtils.isNotEmpty(possibleIdentifiers)) {
-                                identifier = possibleIdentifiers.get(0);
-                                referenceSequence.getIdentifiers().add(identifier);
-                            }
-
-                            // set protein identifier
-                            String versionedProteinAccession = record.getProteinAccessionVersion();
-                            identifier = new Identifier(IDENTIFIER_KEY_PROTEIN, versionedProteinAccession);
-                            possibleIdentifiers = hearsayDAOBeanService.getIdentifierDAO().findByExample(identifier);
-                            if (CollectionUtils.isNotEmpty(possibleIdentifiers)) {
-                                identifier = possibleIdentifiers.get(0);
-                                referenceSequence.getIdentifiers().add(identifier);
-                            }
-
-                            // set genomic identifier
-                            String versionedGenomicAccession = record.getGenomicNucleotideAccessionVersion();
-                            identifier = new Identifier(IDENTIFIER_KEY_GENOME, versionedGenomicAccession);
-                            possibleIdentifiers = hearsayDAOBeanService.getIdentifierDAO().findByExample(identifier);
-                            if (CollectionUtils.isNotEmpty(possibleIdentifiers)) {
-                                identifier = possibleIdentifiers.get(0);
-                                referenceSequence.getIdentifiers().add(identifier);
-                            }
-
-                            hearsayDAOBeanService.getReferenceSequenceDAO().save(referenceSequence);
-                            logger.debug("refSeqAccession = {}, proteinAccession = {}, genomicAccession = {}", versionedRefSeqAccession,
-                                    versionedProteinAccession, versionedGenomicAccession);
-                        } catch (Exception e) {
-                            logger.error(e.getMessage(), e);
-                            e.printStackTrace();
                         }
+
+                        Location genomicLocation = new Location(record.getGenomicStartPosition(), record.getGenomicEndPosition());
+                        genomicLocation.setId(hearsayDAOBeanService.getLocationDAO().save(genomicLocation));
+                        referenceSequence.setGenomicLocation(genomicLocation);
+
+                        referenceSequence.setId(hearsayDAOBeanService.getReferenceSequenceDAO().save(referenceSequence));
+
+                        // set Gene
+                        Gene exampleGene = new Gene();
+                        exampleGene.setSymbol(record.getSymbol());
+                        List<Gene> potentialGenes = hearsayDAOBeanService.getGeneDAO().findByExample(exampleGene);
+                        if (CollectionUtils.isNotEmpty(potentialGenes)) {
+                            referenceSequence.setGene(potentialGenes.get(0));
+                        }
+
+                        // set GenomeReference
+                        GenomeReference exampleGenomeReference = new GenomeReference();
+                        exampleGenomeReference
+                                .setName(record.getAssembly().replace("Reference", "").replace("Primary Assembly", "").trim());
+                        List<GenomeReference> potentialGenomeReferences = hearsayDAOBeanService.getGenomeReferenceDAO()
+                                .findByExample(exampleGenomeReference);
+                        if (CollectionUtils.isNotEmpty(potentialGenomeReferences)) {
+                            referenceSequence.setGenomeReference(potentialGenomeReferences.get(0));
+                        }
+
+                        // set nucleotide identifier
+                        String versionedRefSeqAccession = record.getRNANucleotideAccessionVersion();
+                        Identifier identifier = new Identifier(IDENTIFIER_KEY_NUCCORE, versionedRefSeqAccession);
+                        List<Identifier> possibleIdentifiers = hearsayDAOBeanService.getIdentifierDAO().findByExample(identifier);
+                        if (CollectionUtils.isNotEmpty(possibleIdentifiers)) {
+                            identifier = possibleIdentifiers.get(0);
+                            referenceSequence.getIdentifiers().add(identifier);
+                        }
+
+                        // set protein identifier
+                        String versionedProteinAccession = record.getProteinAccessionVersion();
+                        identifier = new Identifier(IDENTIFIER_KEY_PROTEIN, versionedProteinAccession);
+                        possibleIdentifiers = hearsayDAOBeanService.getIdentifierDAO().findByExample(identifier);
+                        if (CollectionUtils.isNotEmpty(possibleIdentifiers)) {
+                            identifier = possibleIdentifiers.get(0);
+                            referenceSequence.getIdentifiers().add(identifier);
+                        }
+
+                        // set genomic identifier
+                        String versionedGenomicAccession = record.getGenomicNucleotideAccessionVersion();
+                        identifier = new Identifier(IDENTIFIER_KEY_GENOME, versionedGenomicAccession);
+                        possibleIdentifiers = hearsayDAOBeanService.getIdentifierDAO().findByExample(identifier);
+                        if (CollectionUtils.isNotEmpty(possibleIdentifiers)) {
+                            identifier = possibleIdentifiers.get(0);
+                            referenceSequence.getIdentifiers().add(identifier);
+                        }
+
+                        hearsayDAOBeanService.getReferenceSequenceDAO().save(referenceSequence);
+                        logger.debug("refSeqAccession = {}, proteinAccession = {}, genomicAccession = {}", versionedRefSeqAccession,
+                                versionedProteinAccession, versionedGenomicAccession);
+                    } catch (Exception e) {
+                        logger.error(e.getMessage(), e);
+                        e.printStackTrace();
                     }
                 });
 
