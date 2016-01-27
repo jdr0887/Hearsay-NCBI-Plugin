@@ -70,9 +70,6 @@ public class AddAlignmentUTRsRunnable implements Runnable {
 
                         for (Alignment alignment : alignments) {
 
-                            Location proteinLocation = alignment.getProteinLocation();
-                            logger.info("Protein: {}", proteinLocation.toString());
-
                             List<Region> regionList = hearsayDAOBeanService.getRegionDAO().findByAlignmentId(alignment.getId());
 
                             if (CollectionUtils.isEmpty(regionList)) {
@@ -89,132 +86,145 @@ public class AddAlignmentUTRsRunnable implements Runnable {
                                 return 0;
                             });
 
-                            for (Region region : regionList) {
-                                Location transcriptLocation = region.getTranscriptLocation();
-                                if (transcriptLocation == null) {
-                                    continue;
-                                }
-                                int transcriptStart = transcriptLocation.getStart();
-                                int transcriptStop = transcriptLocation.getStop();
-                                Range<Integer> transcriptRange = transcriptLocation.toRange();
+                            Location proteinLocation = alignment.getProteinLocation();
+                            if (proteinLocation != null) {
+                                logger.info("Protein: {}", proteinLocation.toString());
 
-                                Location regionLocation = region.getRegionLocation();
-                                if (regionLocation == null) {
-                                    continue;
-                                }
-                                int regionStart = regionLocation.getStart();
-                                int regionStop = regionLocation.getStop();
+                                for (Region region : regionList) {
+                                    Location transcriptLocation = region.getTranscriptLocation();
+                                    if (transcriptLocation == null) {
+                                        continue;
+                                    }
+                                    int transcriptStart = transcriptLocation.getStart();
+                                    int transcriptStop = transcriptLocation.getStop();
+                                    Range<Integer> transcriptRange = transcriptLocation.toRange();
 
-                                if (strandType.equals(StrandType.MINUS)) {
-                                    if (transcriptRange.contains(proteinLocation.getStart())
-                                            && transcriptRange.contains(proteinLocation.getStop())) {
+                                    Location regionLocation = region.getRegionLocation();
+                                    if (regionLocation == null) {
+                                        continue;
+                                    }
+                                    int regionStart = regionLocation.getStart();
+                                    int regionStop = regionLocation.getStop();
 
-                                        transcriptLocation.setStop(proteinLocation.getStart() - 1);
-                                        regionLocation.setStop(regionStart + transcriptLocation.diff());
+                                    if (strandType.equals(StrandType.MINUS)) {
+                                        if (transcriptRange.contains(proteinLocation.getStart())
+                                                && transcriptRange.contains(proteinLocation.getStop())) {
 
-                                        Region newRegion = createRegion(alignment, proteinLocation.getStart(), proteinLocation.getStop(),
-                                                regionLocation.getStop() + 1,
-                                                regionLocation.getStop() + 1 + (proteinLocation.getStop() - proteinLocation.getStart()));
-                                        utrRegionList.add(newRegion);
+                                            transcriptLocation.setStop(proteinLocation.getStart() - 1);
+                                            regionLocation.setStop(regionStart + transcriptLocation.diff());
 
-                                        newRegion = createRegion(alignment, proteinLocation.getStop() + 1, transcriptStop,
-                                                newRegion.getRegionLocation().getStop() + 1, regionStop);
-                                        utrRegionList.add(newRegion);
+                                            Region newRegion = createRegion(alignment, proteinLocation.getStart(),
+                                                    proteinLocation.getStop(), regionLocation.getStop() + 1, regionLocation.getStop() + 1
+                                                            + (proteinLocation.getStop() - proteinLocation.getStart()));
+                                            utrRegionList.add(newRegion);
 
-                                    } else if (transcriptRange.contains(proteinLocation.getStart())) {
+                                            newRegion = createRegion(alignment, proteinLocation.getStop() + 1, transcriptStop,
+                                                    newRegion.getRegionLocation().getStop() + 1, regionStop);
+                                            utrRegionList.add(newRegion);
 
-                                        transcriptLocation.setStop(proteinLocation.getStart() - 1);
-                                        regionLocation.setStart(regionStop - transcriptLocation.diff());
+                                        } else if (transcriptRange.contains(proteinLocation.getStart())) {
 
-                                        Region newRegion = createRegion(alignment, proteinLocation.getStart(), transcriptStop,
-                                                regionLocation.getStart() - 1 - (transcriptStop - proteinLocation.getStart()),
-                                                regionLocation.getStart() - 1);
-                                        utrRegionList.add(newRegion);
+                                            transcriptLocation.setStop(proteinLocation.getStart() - 1);
+                                            regionLocation.setStart(regionStop - transcriptLocation.diff());
 
-                                    } else if (transcriptRange.contains(proteinLocation.getStop())) {
+                                            Region newRegion = createRegion(alignment, proteinLocation.getStart(), transcriptStop,
+                                                    regionLocation.getStart() - 1 - (transcriptStop - proteinLocation.getStart()),
+                                                    regionLocation.getStart() - 1);
+                                            utrRegionList.add(newRegion);
 
-                                        transcriptLocation.setStart(proteinLocation.getStop() + 1);
-                                        regionLocation.setStop(regionStart + transcriptLocation.diff());
+                                        } else if (transcriptRange.contains(proteinLocation.getStop())) {
 
-                                        Region newRegion = createRegion(alignment, transcriptStart, proteinLocation.getStop(),
-                                                regionLocation.getStop() + 1,
-                                                regionLocation.getStop() + 1 + (proteinLocation.getStop() - transcriptStart));
-                                        utrRegionList.add(newRegion);
+                                            transcriptLocation.setStart(proteinLocation.getStop() + 1);
+                                            regionLocation.setStop(regionStart + transcriptLocation.diff());
+
+                                            Region newRegion = createRegion(alignment, transcriptStart, proteinLocation.getStop(),
+                                                    regionLocation.getStop() + 1,
+                                                    regionLocation.getStop() + 1 + (proteinLocation.getStop() - transcriptStart));
+                                            utrRegionList.add(newRegion);
+
+                                        }
+
+                                    } else {
+                                        if (transcriptRange.contains(proteinLocation.getStart())
+                                                && transcriptRange.contains(proteinLocation.getStop())) {
+
+                                            transcriptLocation.setStop(proteinLocation.getStart() - 1);
+                                            regionLocation.setStop(regionStart + transcriptLocation.diff());
+
+                                            Region newRegion = createRegion(alignment, proteinLocation.getStart(),
+                                                    proteinLocation.getStop(), regionLocation.getStop() + 1, regionLocation.getStop() + 1
+                                                            + (proteinLocation.getStop() - proteinLocation.getStart()));
+                                            utrRegionList.add(newRegion);
+
+                                            newRegion = createRegion(alignment, proteinLocation.getStop() + 1, transcriptStop,
+                                                    newRegion.getRegionLocation().getStop() + 1, newRegion.getRegionLocation().getStop() + 1
+                                                            + (transcriptStop - proteinLocation.getStop() - 1));
+                                            utrRegionList.add(newRegion);
+
+                                        } else if (transcriptRange.contains(proteinLocation.getStart())) {
+
+                                            transcriptLocation.setStop(proteinLocation.getStart() - 1);
+                                            regionLocation.setStop(regionStart + transcriptLocation.diff());
+
+                                            Region newRegion = createRegion(alignment, proteinLocation.getStart(), transcriptStop,
+                                                    regionLocation.getStop() + 1,
+                                                    regionLocation.getStop() + 1 + (transcriptStop - proteinLocation.getStart()));
+                                            utrRegionList.add(newRegion);
+
+                                        } else if (transcriptRange.contains(proteinLocation.getStop())) {
+
+                                            transcriptLocation.setStart(proteinLocation.getStop() + 1);
+                                            regionLocation.setStart(regionStop - transcriptLocation.diff());
+
+                                            Region newRegion = createRegion(alignment, transcriptStart, proteinLocation.getStop(),
+                                                    regionLocation.getStart() - 1 - (proteinLocation.getStop() - transcriptStart),
+                                                    regionLocation.getStart() - 1);
+                                            utrRegionList.add(newRegion);
+
+                                        }
 
                                     }
 
-                                } else {
-                                    if (transcriptRange.contains(proteinLocation.getStart())
-                                            && transcriptRange.contains(proteinLocation.getStop())) {
+                                    hearsayDAOBeanService.getLocationDAO().save(transcriptLocation);
+                                    hearsayDAOBeanService.getLocationDAO().save(regionLocation);
 
-                                        transcriptLocation.setStop(proteinLocation.getStart() - 1);
-                                        regionLocation.setStop(regionStart + transcriptLocation.diff());
+                                }
 
-                                        Region newRegion = createRegion(alignment, proteinLocation.getStart(), proteinLocation.getStop(),
-                                                regionLocation.getStop() + 1,
-                                                regionLocation.getStop() + 1 + (proteinLocation.getStop() - proteinLocation.getStart()));
-                                        utrRegionList.add(newRegion);
+                                regionList.addAll(utrRegionList);
 
-                                        newRegion = createRegion(alignment, proteinLocation.getStop() + 1, transcriptStop,
-                                                newRegion.getRegionLocation().getStop() + 1, newRegion.getRegionLocation().getStop() + 1
-                                                        + (transcriptStop - proteinLocation.getStop() - 1));
-                                        utrRegionList.add(newRegion);
+                                for (Region region : regionList) {
 
-                                    } else if (transcriptRange.contains(proteinLocation.getStart())) {
-
-                                        transcriptLocation.setStop(proteinLocation.getStart() - 1);
-                                        regionLocation.setStop(regionStart + transcriptLocation.diff());
-
-                                        Region newRegion = createRegion(alignment, proteinLocation.getStart(), transcriptStop,
-                                                regionLocation.getStop() + 1,
-                                                regionLocation.getStop() + 1 + (transcriptStop - proteinLocation.getStart()));
-                                        utrRegionList.add(newRegion);
-
-                                    } else if (transcriptRange.contains(proteinLocation.getStop())) {
-
-                                        transcriptLocation.setStart(proteinLocation.getStop() + 1);
-                                        regionLocation.setStart(regionStop - transcriptLocation.diff());
-
-                                        Region newRegion = createRegion(alignment, transcriptStart, proteinLocation.getStop(),
-                                                regionLocation.getStart() - 1 - (proteinLocation.getStop() - transcriptStart),
-                                                regionLocation.getStart() - 1);
-                                        utrRegionList.add(newRegion);
-
+                                    if (strandType.equals(StrandType.PLUS)
+                                            && region.getTranscriptLocation().getStop() < proteinLocation.getStart()) {
+                                        region.setRegionType(RegionType.UTR5);
                                     }
 
-                                }
+                                    if (strandType.equals(StrandType.PLUS)
+                                            && region.getTranscriptLocation().getStop() > proteinLocation.getStop()) {
+                                        region.setRegionType(RegionType.UTR3);
+                                    }
 
-                                hearsayDAOBeanService.getLocationDAO().save(transcriptLocation);
-                                hearsayDAOBeanService.getLocationDAO().save(regionLocation);
+                                    if (strandType.equals(StrandType.MINUS)
+                                            && region.getTranscriptLocation().getStop() < proteinLocation.getStart()) {
+                                        region.setRegionType(RegionType.UTR5);
+                                    }
+
+                                    if (strandType.equals(StrandType.MINUS)
+                                            && region.getTranscriptLocation().getStop() > proteinLocation.getStop()) {
+                                        region.setRegionType(RegionType.UTR3);
+                                    }
+                                    hearsayDAOBeanService.getRegionDAO().save(region);
+
+                                }
 
                             }
 
-                            regionList.addAll(utrRegionList);
-
-                            for (Region region : regionList) {
-
-                                if (strandType.equals(StrandType.PLUS)
-                                        && region.getTranscriptLocation().getStop() < alignment.getProteinLocation().getStart()) {
-                                    region.setRegionType(RegionType.UTR5);
+                            regionList.sort((a, b) -> {
+                                if (a != null && a.getRegionLocation() != null && b != null && b.getRegionLocation() != null) {
+                                    return a.getRegionLocation().getStart().compareTo(b.getRegionLocation().getStart());
                                 }
-
-                                if (strandType.equals(StrandType.PLUS)
-                                        && region.getTranscriptLocation().getStop() > alignment.getProteinLocation().getStop()) {
-                                    region.setRegionType(RegionType.UTR3);
-                                }
-
-                                if (strandType.equals(StrandType.MINUS)
-                                        && region.getTranscriptLocation().getStop() < alignment.getProteinLocation().getStart()) {
-                                    region.setRegionType(RegionType.UTR5);
-                                }
-
-                                if (strandType.equals(StrandType.MINUS)
-                                        && region.getTranscriptLocation().getStop() > alignment.getProteinLocation().getStop()) {
-                                    region.setRegionType(RegionType.UTR3);
-                                }
-                                hearsayDAOBeanService.getRegionDAO().save(region);
-
-                            }
+                                return 0;
+                            });
 
                             // adding intron regions
 
