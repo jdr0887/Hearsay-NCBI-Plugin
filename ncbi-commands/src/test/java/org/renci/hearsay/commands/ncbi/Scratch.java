@@ -21,6 +21,7 @@ import org.renci.gene2accession.filter.G2ARNANucleotideAccessionVersionPrefixFil
 import org.renci.gene2accession.filter.G2ATaxonIdFilter;
 import org.renci.gene2accession.model.Record;
 import org.renci.hearsay.commands.ncbi.util.FTPUtil;
+import org.renci.hearsay.dao.model.DirectionType;
 
 public class Scratch {
 
@@ -38,9 +39,20 @@ public class Scratch {
 
     @Test
     public void scratch() throws IOException {
-        String asdf = "NM_000660.5:c.-171delC";
-        String a = asdf.substring(0, asdf.indexOf(":"));
-        System.out.println(a);
+        Pattern p = Pattern.compile("(\\d+)([-|+])(\\d+)");
+        Matcher m = p.matcher("127+12");
+        if (m.matches()) {
+            DirectionType directionType = null;
+            for (DirectionType dt : DirectionType.values()) {
+                if (dt.getValue().equals(m.group(2))) {
+                    directionType = dt;
+                    break;
+                }
+            }
+            System.out.println(directionType.getValue());
+            System.out.println(m.group(1));
+            System.out.println(m.group(3));
+        }
     }
 
     @Test
