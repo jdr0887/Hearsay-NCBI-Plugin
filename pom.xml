@@ -15,6 +15,7 @@
     <gbff.parser.version>0.0.26</gbff.parser.version>
     <gff3.parser.version>0.0.5</gff3.parser.version>
     <gene2accession.parser.version>0.0.8</gene2accession.parser.version>
+    <hgvs.parser.version>0.0.4</hgvs.parser.version>
   </properties>
   <issueManagement>
     <system>GitHub Issues</system>
@@ -35,6 +36,11 @@
   </scm>
   <dependencyManagement>
     <dependencies>
+      <dependency>
+	<groupId>org.renci.hgvs</groupId>
+	<artifactId>hgvs-parser</artifactId>
+	<version>${hgvs.parser.version}</version>
+      </dependency>                
       <dependency>
 	<groupId>org.renci.hearsay</groupId>
 	<artifactId>hearsay-commands</artifactId>
