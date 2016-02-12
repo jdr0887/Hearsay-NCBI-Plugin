@@ -13,6 +13,10 @@
   <packaging>bundle</packaging>
   <dependencies>
     <dependency>
+      <groupId>org.renci.hgvs</groupId>
+      <artifactId>hgvs-parser</artifactId>
+    </dependency>                    
+    <dependency>
       <groupId>org.renci.hearsay</groupId>
       <artifactId>hearsay-commands</artifactId>
       <scope>provided</scope>      
