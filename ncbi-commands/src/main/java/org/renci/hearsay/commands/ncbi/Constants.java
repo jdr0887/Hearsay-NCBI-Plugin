@@ -12,4 +12,8 @@ public interface Constants {
 
     public static final String IDENTIFIER_KEY_ASSEMBLY = "www.ncbi.nlm.nih.gov/assembly";
 
+    public static final String IDENTIFIER_KEY_VARIATION = "www.ncbi.nlm.nih.gov/clinvar/variation";
+
+    public static final String IDENTIFIER_KEY_SNP = "www.ncbi.nlm.nih.gov/snp";
+
 }
