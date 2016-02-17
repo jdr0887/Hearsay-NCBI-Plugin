@@ -1,0 +1,43 @@
+<document>
+  <body>
+    <section name="Pull Features">
+      <subsection name="Command">
+	<source>ncbi:pull-features</source>	
+      </subsection>
+      <subsection name="Source">
+	<p>The following files are also downloaded for Feature instances:</p>
+	<source>ftp://ftp.ncbi.nlm.nih.gov/refseq/H_sapiens/mRNA_Prot/*.rna.gbff.gz</source>
+	<p>Downloading all the "*.rna.gbff.gz" files will take about
+	7GB of disk space.  Processing through all this data will take
+	some time as the data is compressed and the parser is memory
+	intensive.</p>
+      </subsection>
+      <subsection name="Threading &amp; Synchronization">
+	<p>This command does not try to synchronize Alignment
+	instances with previously created instances. Multithreading is
+	heavily used.</p>
+      </subsection>
+      <subsection name="Filtering">
+	<p>We currently filter on various fields:</p>
+	<source>
+List&lt;GBFFFilter&gt; filters = Arrays.asList(new GBFFFilter[] {
+	  new GBFFSequenceAccessionPrefixFilter(Arrays.asList(new String[] { "NM_", "NR_" })),
+          new GBFFSourceOrganismNameFilter("Homo sapiens"),
+	  new GBFFFeatureSourceOrganismNameFilter("Homo sapiens"),
+          new GBFFFeatureTypeNameFilter("CDS"),
+	  new GBFFFeatureTypeNameFilter("source") });
+GBFFAndFilter gbffFilter = new GBFFAndFilter(filters);
+List&lt;Sequence&gt; sequenceList = gbffMgr.deserialize(gbffFilter, f);
+	</source>
+        <p>We include Features instances that have:</p>
+	<ul>
+	  <li>a sequence accession prefix of NM_ or NR_</li>
+	  <li>a source->organism name of 'Homo sapiens'</li>
+	  <li>a feature->source->organism name of 'Homo sapiens'</li>
+	  <li>a feature type name of 'CDS'</li>	  	  
+	  <li>a feature type name of 'source'</li>	  
+	</ul>	
+      </subsection>                  
+    </section>
+  </body>
+</document>
