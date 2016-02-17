@@ -1,6 +1,4 @@
 <document>
-  <properties>
-  </properties>
   <body>
     <section name="Pull Genes">
       <subsection name="Command">
@@ -18,7 +16,10 @@
 	command checks for the existence of previously persisted Gene
 	instances, multithreading is not used....avoiding race
 	conditions.</p>
-      </subsection>      
+      </subsection>
+      <subsection name="Filtering">
+	<p>If the chromosome is '-' or 'Un', the gene will be ignored.</p>
+      </subsection>            
     </section>
   </body>
 </document>
