@@ -33,7 +33,7 @@ List&lt;GBFFFilter&gt; filters = Arrays.asList(new GBFFFilter[] {
 GBFFAndFilter gbffFilter = new GBFFAndFilter(filters);
 List&lt;Sequence&gt; sequenceList = gbffMgr.deserialize(gbffFilter, f);
 	</source>
-        <p>We are effectively filtering out Alignment instances that have:</p>
+        <p>We include Alignment instances that have:</p>
 	<ul>
 	  <li>a sequence accession prefix of NM_ or NR_</li>
 	  <li>a source->organism name of 'Homo sapiens'</li>

@@ -413,9 +413,7 @@ public class PullClinVarRunnable implements Runnable {
                                                     }
 
                                                 }
-
-                                                referenceCoordinate
-                                                        .setId(hearsayDAOBeanService.getReferenceCoordinateDAO().save(referenceCoordinate));
+                                                hearsayDAOBeanService.getReferenceCoordinateDAO().save(referenceCoordinate);
 
                                             }
 
