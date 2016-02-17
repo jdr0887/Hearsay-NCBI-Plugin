@@ -1,7 +1,18 @@
 <document>
   <body>
     <section name="About">
-      <p></p>
+      <subsection name="Recommendations">
+	<ul>
+	  <li>Pulling NCBI data and then parsing it can be memory
+	  intensive.  Please set mininum/maximum memory to 8GB: -Xms8g
+	  -Xmx8g</li>
+	</ul>
+      </subsection>                  
+      <subsection name="Source">	
+	<p>
+	  <a href="https://github.com/jdr0887/Hearsay-NCBI-Plugin">https://github.com/jdr0887/Hearsay-NCBI-Plugin</a>
+	</p>
+      </subsection>
     </section>    
   </body>
 </document>
