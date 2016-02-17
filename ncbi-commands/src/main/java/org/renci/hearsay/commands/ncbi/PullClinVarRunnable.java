@@ -20,7 +20,6 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.renci.clinvar.MeasureSetType;
 import org.renci.clinvar.MeasureSetType.Measure;
 import org.renci.clinvar.MeasureSetType.Measure.AttributeSet;
@@ -39,6 +38,7 @@ import org.renci.hearsay.dao.model.ComplexityType;
 import org.renci.hearsay.dao.model.ContextualAllele;
 import org.renci.hearsay.dao.model.ContextualAlleleName;
 import org.renci.hearsay.dao.model.ContextualAlleleNameType;
+import org.renci.hearsay.dao.model.ContextualAlleleType;
 import org.renci.hearsay.dao.model.DirectionType;
 import org.renci.hearsay.dao.model.ExternalOffsetPosition;
 import org.renci.hearsay.dao.model.Identifier;
@@ -286,6 +286,7 @@ public class PullClinVarRunnable implements Runnable {
                                     Attribute attribute = attributeSet.getAttribute();
                                     String attributeValue = attribute.getValue();
                                     String attributeType = attribute.getType();
+                                    logger.info("attributeValue: {}, attributeType: {}", attributeValue, attributeType);
                                     ContextualAlleleNameType nameType = null;
                                     if (attributeValue.contains(":c.")) {
                                         nameType = ContextualAlleleNameType.HGVS_CDNA;
@@ -310,6 +311,7 @@ public class PullClinVarRunnable implements Runnable {
                                         case "HGVS, coding, RefSeq":
 
                                             DNAVariantMutation variantMutation = HGVSParser.getInstance().parseDNAMutation(attributeValue);
+                                            logger.info(variantMutation.toString());
                                             DNAChangeType changeType = variantMutation.getChangeType();
                                             if (changeType == null) {
                                                 logger.warn("changeType is null: {}", attributeValue);
@@ -319,6 +321,7 @@ public class PullClinVarRunnable implements Runnable {
                                             List<ReferenceSequence> foundReferenceSequences = hearsayDAOBeanService
                                                     .getReferenceSequenceDAO()
                                                     .findByIdentifierSystemAndValue(IDENTIFIER_KEY_NUCCORE, variantMutation.getAccession());
+
                                             if (CollectionUtils.isNotEmpty(foundReferenceSequences)) {
                                                 referenceSequence = foundReferenceSequences.get(0);
                                             }
@@ -345,6 +348,7 @@ public class PullClinVarRunnable implements Runnable {
 
                                                 ContextualAllele contextualAllele = new ContextualAllele();
                                                 contextualAllele.setCanonicalAllele(canonicalAllele);
+                                                contextualAllele.setType(ContextualAlleleType.TRANSCRIPT);
                                                 contextualAllele.setReferenceCoordinate(referenceCoordinate);
                                                 contextualAllele.setAllele(substitutionAlleleInfo.getMutation());
                                                 contextualAllele
