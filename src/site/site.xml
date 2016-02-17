@@ -18,10 +18,12 @@
       <item name="About" href="index.html"/>
     </menu>
     <menu name="Commands">
+      <item name="Pull" href="commands/Pull.html"/>      
       <item name="Pull Genes" href="commands/PullGenes.html"/>
       <item name="Pull Genome References" href="commands/PullGenomeReferences.html"/>
       <item name="Pull Reference Sequences" href="commands/PullReferenceSequences.html"/>
       <item name="Pull Alignments" href="commands/PullAlignments.html"/>
+      <item name="Add Alignment UTRs" href="commands/AddAlignmentUTRs.html"/>      
     </menu>
     <menu ref="reports"/>
   </body>
