@@ -1,0 +1,22 @@
+<document>
+  <body>
+    <section name="Pull">
+      <subsection name="Command">
+	<source>ncbi:pull</source>	
+      </subsection>                  
+      <subsection name="About">
+	<p>The following is persisted from NCBI in the order listed.
+	Multithreading is used judiciously to avoid race conditions
+	and OutOfMemory exceptions.</p>
+	<ol>
+	  <li>Chromosomes</li>
+	  <li>Genes and GenomeReferences</li>
+	  <li>ReferenceSequences</li>
+	  <li>Alignments</li>
+	  <li>AlignmentUTRs</li>
+	  <li>Features</li>
+	</ol>
+      </subsection>
+    </section>
+  </body>
+</document>

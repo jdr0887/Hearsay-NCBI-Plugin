@@ -1,0 +1,16 @@
+<document>
+  <body>
+    <section name="Add Alignment UTRs">
+      <subsection name="Command">
+	<source>ncbi:add-alignment-utrs</source>	
+      </subsection>      
+      <subsection name="About">
+	<p>The ncbi:pull-alignments command only creates EXON
+	instances.  Adding the UTR3, UTR5, and INTRON Regions is left
+	to this command.  All ReferenceSequences with a NCBI based
+	system identifier are processed.  Note that test cases exist
+	for asserting continuity between regions.</p>
+      </subsection>      
+    </section>
+  </body>
+</document>
