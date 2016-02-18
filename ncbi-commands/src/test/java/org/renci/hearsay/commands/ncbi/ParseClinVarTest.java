@@ -4,10 +4,14 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 
 import javax.xml.bind.JAXBContext;
@@ -24,6 +28,9 @@ import org.renci.clinvar.ReferenceAssertionType;
 import org.renci.clinvar.ReleaseType;
 import org.renci.clinvar.SetElementSetType;
 import org.renci.hearsay.commands.ncbi.util.FTPUtil;
+import org.renci.hgvs.HGVSParser;
+import org.renci.hgvs.model.dna.DNAChangeType;
+import org.renci.hgvs.model.dna.DNAVariantMutation;
 
 public class ParseClinVarTest {
 
@@ -207,6 +214,73 @@ public class ParseClinVarTest {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Test
+    public void filter() {
+
+        List<DNAVariantMutation> dnaVariantMutationList = new ArrayList<DNAVariantMutation>();
+        List<String> allowedTranscriptAccessionPrefixes = Arrays.asList("NM_", "NR_");
+
+        try {
+            File clinvarDownload = FTPUtil.ncbiDownload("/pub/clinvar/xml", "ClinVarFullRelease_00-latest.xml.gz");
+            JAXBContext jc = JAXBContext.newInstance(ReleaseType.class);
+            Unmarshaller u = jc.createUnmarshaller();
+            ReleaseType releaseType = (ReleaseType) u.unmarshal(new GZIPInputStream(new FileInputStream(clinvarDownload)));
+            List<PublicSetType> publicSetType = releaseType.getClinVarSet();
+
+            ExecutorService es = Executors.newFixedThreadPool(4);
+
+            for (PublicSetType pst : publicSetType) {
+                es.submit(() -> {
+                    try {
+                        ReferenceAssertionType rat = pst.getReferenceClinVarAssertion();
+                        MeasureSetType mst = rat.getMeasureSet();
+
+                        if ("Variant".equals(mst.getType())) {
+                            for (Measure measure : mst.getMeasure()) {
+
+                                if (!allowedTypes.contains(measure.getType())) {
+                                    continue;
+                                }
+
+                                List<AttributeSet> attributeSetList = measure.getAttributeSet();
+                                for (AttributeSet attributeSet : attributeSetList) {
+                                    Attribute attribute = attributeSet.getAttribute();
+                                    String attributeType = attribute.getType();
+                                    String attributeValue = attribute.getValue();
+
+                                    if (!"HGVS, coding, RefSeq".equals(attributeType)) {
+                                        continue;
+                                    }
+
+                                    if (!allowedTranscriptAccessionPrefixes.contains(attributeValue.substring(0, 3))) {
+                                        continue;
+                                    }
+
+                                    DNAVariantMutation variantMutation = HGVSParser.getInstance().parseDNAMutation(attributeValue);
+                                    DNAChangeType changeType = variantMutation.getChangeType();
+                                    if (changeType == null) {
+                                        continue;
+                                    }
+                                    dnaVariantMutationList.add(variantMutation);
+                                }
+
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+            }
+            es.shutdown();
+            es.awaitTermination(10L, TimeUnit.MINUTES);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        System.out.println(dnaVariantMutationList.size());
+
     }
 
     @Test
