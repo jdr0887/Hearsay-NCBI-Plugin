@@ -88,15 +88,6 @@ public class PullRunnable implements Runnable {
         }
         long endPersistAlignmentsTime = System.currentTimeMillis();
 
-        long startPersistFeaturesTime = System.currentTimeMillis();
-        try {
-            PullFeaturesRunnable pullFeaturesRunnable = new PullFeaturesRunnable(hearsayDAOBeanService);
-            Executors.newSingleThreadExecutor().submit(pullFeaturesRunnable).get();
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
-        long endPersistFeaturesTime = System.currentTimeMillis();
-
         long startAddAlignmentUTRsTime = System.currentTimeMillis();
         try {
             AddAlignmentUTRsRunnable runnable = new AddAlignmentUTRsRunnable(hearsayDAOBeanService);
@@ -106,6 +97,15 @@ public class PullRunnable implements Runnable {
         }
         long endAddAlignmentUTRsTime = System.currentTimeMillis();
 
+        long startPersistFeaturesTime = System.currentTimeMillis();
+        try {
+            PullFeaturesRunnable pullFeaturesRunnable = new PullFeaturesRunnable(hearsayDAOBeanService);
+            Executors.newSingleThreadExecutor().submit(pullFeaturesRunnable).get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+        long endPersistFeaturesTime = System.currentTimeMillis();
+
         Long chromosomeDuration = (endPersistChromosomeTime - startPersistChromosomeTime) / 1000;
         logger.info("duration to persist Chromosomes: {} seconds", chromosomeDuration);
         Long genesAndGenomeReferencesDuration = (endPersistGenesAndGenomeReferencesTime - startPersistGenesAndGenomeReferencesTime) / 1000;
@@ -114,10 +114,10 @@ public class PullRunnable implements Runnable {
         logger.info("duration to persist ReferenceSequences: {} seconds", referencesSequencesDuration);
         Long alignmentsDuration = (endPersistAlignmentsTime - startPersistAlignmentsTime) / 1000;
         logger.info("duration to persist Alignments: {} seconds", alignmentsDuration);
-        Long featuresDuration = (endPersistFeaturesTime - startPersistFeaturesTime) / 1000;
-        logger.info("duration to persist Features: {} seconds", featuresDuration);
         Long addAlignmentUTRsDuration = (endAddAlignmentUTRsTime - startAddAlignmentUTRsTime) / 1000;
         logger.info("duration to persist Alignment UTRs: {} seconds", addAlignmentUTRsDuration);
+        Long featuresDuration = (endPersistFeaturesTime - startPersistFeaturesTime) / 1000;
+        logger.info("duration to persist Features: {} seconds", featuresDuration);
 
         Long totalDuration = (chromosomeDuration + genesAndGenomeReferencesDuration + referencesSequencesDuration + alignmentsDuration
                 + featuresDuration + addAlignmentUTRsDuration) / 60;
